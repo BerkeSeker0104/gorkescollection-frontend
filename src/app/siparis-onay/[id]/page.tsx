@@ -1,13 +1,9 @@
 import { CheckCircle } from "lucide-react";
 
-// Sayfanın hangi parametreleri alacağını tanımlıyoruz.
-interface OrderConfirmationPageProps {
-    params: {
-      id: string;
-    };
-}
-
-export default function OrderConfirmationPage({ params }: OrderConfirmationPageProps) {
+// --- GÜNCELLENDİ: Tip tanımı sadeleştirildi ---
+// Ayrı bir interface oluşturmak yerine, props'ları doğrudan fonksiyonun
+// imzasında tanımlamak bu tür hataları çözer.
+export default function OrderConfirmationPage({ params }: { params: { id: string } }) {
     return (
         <div className="bg-white pt-40">
             <div className="container mx-auto px-4 py-16 text-center">
