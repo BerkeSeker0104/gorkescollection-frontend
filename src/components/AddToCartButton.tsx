@@ -1,7 +1,8 @@
 'use client';
 
 import { useCart } from "@/context/CartContext";
-import { useState } from "react";
+// useState artık kullanılmıyor
+// import { useState } from "react"; 
 
 interface AddToCartButtonProps {
     productId: number;
@@ -9,11 +10,13 @@ interface AddToCartButtonProps {
 
 export default function AddToCartButton({ productId }: AddToCartButtonProps) {
     const { addItem, loading } = useCart();
-    const [quantity, setQuantity] = useState(1); // Şimdilik miktar hep 1
+    // Miktar her zaman 1 olacağı için bu state'e gerek kalmadı.
+    // const [quantity, setQuantity] = useState(1); 
 
     const handleAddToCart = async () => {
-        await addItem(productId, quantity);
-        // TODO: Sepete eklendiğine dair bir bildirim gösterilebilir.
+        // --- GÜNCELLENDİ: Fonksiyon artık sadece productId gönderiyor ---
+        await addItem(productId);
+        // TODO: Sepete eklendiğine dair bir bildirim gösterilebilir (Toast notification).
         console.log(`${productId} ID'li ürün sepete eklendi.`);
     };
 
