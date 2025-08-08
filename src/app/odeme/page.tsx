@@ -10,8 +10,14 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
 
+// --- GÜNCELLENDİ: Doğrulama şemasına phoneNumber eklendi ---
 const addressSchema = z.object({
     fullName: z.string().min(3, "Ad Soyad en az 3 karakter olmalıdır."),
+    // Yeni eklenen telefon numarası doğrulaması
+    phoneNumber: z.string()
+      .min(10, "Telefon numarası 10 haneli olmalıdır.")
+      .max(10, "Telefon numarası 10 haneli olmalıdır.")
+      .regex(/^[0-9]+$/, "Sadece rakam giriniz."),
     address1: z.string().min(10, "Adres en az 10 karakter olmalıdır."),
     address2: z.string().optional(),
     city: z.string().min(2, "Şehir adı en az 2 karakter olmalıdır."),
@@ -99,6 +105,8 @@ export default function CheckoutPage() {
                                         )}
                                     >
                                         <p className="font-bold">{address.fullName}</p>
+                                        {/* Kayıtlı adreste telefon numarasını göster */}
+                                        <p className="text-sm text-gray-600">{address.phoneNumber}</p>
                                         <p className="text-sm text-gray-600">{address.address1}</p>
                                         <p className="text-sm text-gray-600">{address.district}, {address.city}</p>
                                     </button>
@@ -111,11 +119,22 @@ export default function CheckoutPage() {
                     )}
 
                     <h2 className="text-2xl font-bold text-gray-800 mb-6">Teslimat Adresi</h2>
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 bg-white p-8 rounded-lg shadow-sm">
-                        <div>
-                            <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">Ad Soyad</label>
-                            <input type="text" {...register("fullName")} className={inputStyle} />
-                            {errors.fullName && <p className="mt-2 text-sm text-red-600">{errors.fullName.message}</p>}
+                    <form id="checkout-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6 bg-white p-8 rounded-lg shadow-sm">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">Ad Soyad</label>
+                                <input type="text" {...register("fullName")} className={inputStyle} />
+                                {errors.fullName && <p className="mt-2 text-sm text-red-600">{errors.fullName.message}</p>}
+                            </div>
+                            {/* --- YENİ: Telefon numarası input alanı eklendi --- */}
+                            <div>
+                                <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">Telefon Numarası</label>
+                                <div className="relative">
+                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-gray-500">+90</span>
+                                    <input type="tel" {...register("phoneNumber")} className={`${inputStyle} pl-10`} placeholder="5xxxxxxxxx"/>
+                                </div>
+                                {errors.phoneNumber && <p className="mt-1 text-xs text-red-500">{errors.phoneNumber.message}</p>}
+                            </div>
                         </div>
 
                         <div>
@@ -142,14 +161,6 @@ export default function CheckoutPage() {
                             <input type="text" {...register("postalCode")} className={inputStyle} />
                             {errors.postalCode && <p className="mt-2 text-sm text-red-600">{errors.postalCode.message}</p>}
                         </div>
-
-                        <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="w-full rounded-md border border-transparent bg-gray-900 px-4 py-3 text-base font-medium text-white shadow-sm hover:bg-gray-700 disabled:bg-gray-400"
-                        >
-                            {isSubmitting ? "İşleniyor..." : "Siparişi Tamamla ve Ödemeye Geç"}
-                        </button>
                     </form>
                 </div>
 
@@ -173,6 +184,15 @@ export default function CheckoutPage() {
                             </dd>
                         </div>
                     </dl>
+                    {/* Buton forma dışarıdan bağlanıyor */}
+                    <button
+                        type="submit"
+                        form="checkout-form" // Bu, butonun hangi formu tetikleyeceğini belirtir
+                        disabled={isSubmitting}
+                        className="w-full mt-6 rounded-md border border-transparent bg-gray-900 px-4 py-3 text-base font-medium text-white shadow-sm hover:bg-gray-700 disabled:bg-gray-400"
+                    >
+                        {isSubmitting ? "İşleniyor..." : "Siparişi Tamamla ve Ödemeye Geç"}
+                    </button>
                 </div>
             </div>
         </div>
