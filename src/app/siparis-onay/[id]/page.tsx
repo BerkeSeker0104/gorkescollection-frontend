@@ -1,10 +1,11 @@
 import { CheckCircle } from "lucide-react";
 
-// --- YENİ: Daha sağlam bir tip tanımı ---
-// Next.js'in bir sayfa için beklediği props yapısını
-// açıkça tanımlıyoruz. Bu, build hatalarını önler.
+// --- YENİ: Daha sağlam ve eksiksiz tip tanımı ---
+// Next.js'in bir sayfa için beklediği tüm props yapısını
+// (params ve searchParams) açıkça tanımlıyoruz.
 type Props = {
   params: { id: string };
+  searchParams: { [key: string]: string | string[] | undefined };
 };
 
 export default function OrderConfirmationPage({ params }: Props) {
