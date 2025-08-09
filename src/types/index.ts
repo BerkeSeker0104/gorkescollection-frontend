@@ -6,6 +6,8 @@ export interface Product {
   price: number;
   stockQuantity: number;
   categoryName: string;
+  categoryId: number;   
+  categorySlug: string;
   imageUrls: string[];
   specifications: Record<string, string>;
 }
