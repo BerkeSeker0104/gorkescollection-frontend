@@ -645,3 +645,14 @@ export const resetPassword = async (data: ResetPasswordData): Promise<{ success:
     return { success: false, message: 'Sunucuya ulaşılamadı. Lütfen tekrar deneyin.' };
   }
 };
+
+export const getProductById = async (id: number): Promise<Product | null> => {
+  try {
+    const res = await fetch(`${API_URL}/api/products/${id}`, { cache: "no-store" });
+    if (!res.ok) return null;
+    return res.json();
+  } catch (err) {
+    console.error("Ürün detayı alınırken ağ hatası:", err);
+    return null;
+  }
+};

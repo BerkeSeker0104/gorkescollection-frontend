@@ -1,69 +1,128 @@
-// src/app/admin/urunler/yeni/page.tsx
 "use client";
 
 import ProductForm, { ProductFormData } from "@/components/ProductForm";
-import { createProduct, getCategories } from "@/lib/api";
-import { AdminProductDto, Category } from "@/types";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { AdminProductDto, Category, Product } from "@/types";
+import { getCategories, getProductById, updateProduct } from "@/lib/api";
+import { useEffect, useMemo, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 
-export default function NewProductPage() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function EditProductPage() {
+  const params = useParams<{ id: string }>();
+  const productId = Number(params?.id);
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      const fetchedCategories = await getCategories();
-      setCategories(fetchedCategories);
-      setLoading(false);
-    };
-    fetchCategories();
-  }, []);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const handleCreateProduct = async (data: ProductFormData) => {
-    const specsAsObject = (data.specifications || []).reduce((obj, item) => {
-      obj[item.key] = item.value;
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      try {
+        const [cats, prod] = await Promise.all([
+          getCategories(),
+          getProductById(productId),
+        ]);
+        if (!active) return;
+        setCategories(cats);
+        setProduct(prod);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    if (!Number.isFinite(productId)) {
+      router.push("/admin/urunler");
+      return;
+    }
+    load();
+    return () => {
+      active = false;
+    };
+  }, [productId, router]);
+
+  // --- Güvenli kategoriId çözücü (categoryId ya da category?.id olabilir) ---
+  const resolveCategoryId = (p: Product | null, cats: Category[]) => {
+    if (!p) return cats?.[0]?.id ?? 0;
+
+    // TS tipi "categoryId" alanını bilmiyor olabilir; o yüzden esnek okuyoruz
+    const fromFlat =
+      (p as unknown as { categoryId?: number })?.categoryId;
+    const fromRel =
+      (p as unknown as { category?: { id?: number } })?.category?.id;
+
+    return Number(fromFlat ?? fromRel ?? cats?.[0]?.id ?? 0);
+  };
+
+  // Product -> ProductFormData map
+  const initialData: ProductFormData | undefined = useMemo(() => {
+    if (!product) return undefined;
+
+    const specsArray =
+      (product as unknown as { specifications?: Record<string, string> }).specifications
+        ? Object.entries(
+            (product as unknown as { specifications?: Record<string, string> })
+              .specifications as Record<string, string>
+          ).map(([key, value]) => ({ key, value: String(value ?? "") }))
+        : [];
+
+    return {
+      name: product.name,
+      description: (product as any).description ?? "",
+      price: Number((product as any).price) || 0,
+      stockQuantity: Number((product as any).stockQuantity) || 0,
+      categoryId: resolveCategoryId(product, categories),
+      imageUrls:
+        (product as any).imageUrls && (product as any).imageUrls.length > 0
+          ? (product as any).imageUrls
+          : [""],
+      specifications: specsArray,
+    };
+  }, [product, categories]);
+
+  const handleUpdateProduct = async (data: ProductFormData) => {
+    if (!product) return false;
+
+    const specsObject = (data.specifications || []).reduce((obj, it) => {
+      if (it.key && it.value) obj[it.key] = it.value;
       return obj;
     }, {} as Record<string, string>);
 
-    const finalData: AdminProductDto = {
+    const payload: AdminProductDto = {
       name: data.name,
       description: data.description,
       price: data.price,
       stockQuantity: data.stockQuantity,
       categoryId: data.categoryId,
       imageUrls: data.imageUrls,
-      specifications: specsAsObject,
+      specifications: specsObject,
     };
 
-    try {
-      const newProduct = await createProduct(finalData);
-
-      // Orijinal mantığı koruyoruz: newProduct !== null kontrolü
-      if (newProduct !== null) {
-        alert("Ürün eklendi");
-        router.push("/admin/urunler");
-        return true; // ProductForm submitting state'i düzgün kapanır
-      } else {
-        // Backend 201/204 ile boş body göndermiş olabilir; yine başarılı sayalım
-        alert("Ürün eklendi");
-        router.push("/admin/urunler");
-        return true;
-      }
-    } catch (e) {
-      alert("Kaydetme başarısız. Lütfen tekrar deneyin.");
+    const ok = await updateProduct(
+      (product as unknown as { id: number }).id,
+      payload
+    );
+    if (ok) {
+      alert("Ürün güncellendi");
+      router.push("/admin/urunler");
+      return true;
+    } else {
+      alert("Güncelleme başarısız. Lütfen tekrar deneyin.");
       return false;
     }
   };
 
   if (loading) return <p>Yükleniyor...</p>;
+  if (!product) return <p>Ürün bulunamadı.</p>;
 
   return (
     <div className="container mx-auto px-6 py-8">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Yeni Ürün Ekle</h1>
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">Ürünü Düzenle</h1>
       <div className="bg-white p-8 rounded-lg shadow-sm max-w-2xl mx-auto">
-        <ProductForm categories={categories} onSubmit={handleCreateProduct} />
+        <ProductForm
+          initialData={initialData}
+          categories={categories}
+          onSubmit={handleUpdateProduct}
+        />
       </div>
     </div>
   );
