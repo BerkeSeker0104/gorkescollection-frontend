@@ -9,7 +9,8 @@ const base = process.env.NEXT_PUBLIC_SITE_URL || "https://gorkescollection.com";
 const api  = process.env.NEXT_PUBLIC_API_URL || "https://gorkes-api.onrender.com";
 
 // Google'a günlük taze liste sun (ISR)
-export const revalidate = 60 * 60 * 24;
+export const revalidate = 86400; // 24 saat
+
 
 async function fetchJSON<T>(url: string): Promise<T> {
   const res = await fetch(url, { next: { revalidate } });
