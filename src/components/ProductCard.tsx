@@ -10,6 +10,7 @@ import { useCart } from '@/context/CartContext';
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import { useState } from 'react';
+import { toast } from 'react-hot-toast';
 
 interface ProductCardProps {
   product: Product;
@@ -39,11 +40,26 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
   const handleAnimationEnd = () => setIsAnimating(false);
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addItem(product.id);
-    // TODO: toast göstermek istersen buraya ekleyebiliriz
+
+    try {
+      await Promise.resolve(addItem(product.id));
+      toast.success(
+        <span>
+          Sepete eklendi.{' '}
+          <Link href="/sepet" className="underline font-medium">
+            Sepete git
+          </Link>
+        </span>,
+        {
+          duration: 3000,
+        }
+      );
+    } catch {
+      toast.error('Sepete eklenemedi');
+    }
   };
 
   const thumb =
@@ -71,7 +87,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
         />
 
-        {/* Favori */}
+        {/* Favori butonu */}
         <button
           onClick={handleFavoriteClick}
           onAnimationEnd={handleAnimationEnd}
@@ -87,7 +103,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           />
         </button>
 
-        {/* Sepete Ekle - Desktop: hover ile görünür (z-20 ile link overlay'inin üstünde) */}
+        {/* Sepete Ekle - Desktop */}
         <button
           onClick={handleAddToCart}
           className="hidden md:flex absolute left-3 right-3 bottom-3 items-center justify-center gap-2 rounded-md bg-gray-900/90 text-white py-2 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm z-20"
@@ -97,7 +113,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <span className="text-sm font-medium">Sepete Ekle</span>
         </button>
 
-        {/* Sepete Ekle - Mobil: her zaman küçük buton (z-20) */}
+        {/* Sepete Ekle - Mobil */}
         <button
           onClick={handleAddToCart}
           className="md:hidden absolute right-3 bottom-3 inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white/90 px-3 py-1.5 text-gray-800 shadow-sm z-20"
@@ -112,7 +128,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <div>
           <h3 className="text-sm text-gray-700">
             <Link href={`/urun/${product.id}`}>
-              {/* Link'in tüm kartı kaplayan overlay span'ı - z-0 ile butonların altında kalır */}
               <span aria-hidden="true" className="absolute inset-0 z-0" />
               {product.name}
             </Link>
