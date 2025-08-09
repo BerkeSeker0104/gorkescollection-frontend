@@ -3,9 +3,10 @@
 import { Product } from '@/types';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Heart } from 'lucide-react';
+import { Heart, ShoppingBag } from 'lucide-react';
 import { useFavorites } from '@/context/FavoritesContext';
 import { useAuth } from '@/context/AuthContext';
+import { useCart } from '@/context/CartContext';
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import { useState } from 'react';
@@ -17,6 +18,7 @@ interface ProductCardProps {
 const ProductCard = ({ product }: ProductCardProps) => {
   const { isFavorite, toggleFavoriteStatus } = useFavorites();
   const { user } = useAuth();
+  const { addItem } = useCart();
   const router = useRouter();
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -31,15 +33,17 @@ const ProductCard = ({ product }: ProductCardProps) => {
       return;
     }
 
-    if (!isFavorited) {
-      setIsAnimating(true);
-    }
-
+    if (!isFavorited) setIsAnimating(true);
     toggleFavoriteStatus(product);
   };
 
-  const handleAnimationEnd = () => {
-    setIsAnimating(false);
+  const handleAnimationEnd = () => setIsAnimating(false);
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addItem(product.id);
+    // burada istersen kısa bir toast tetikleyebiliriz
   };
 
   // ✔️ Görsel kaynağı: ilk URL; yoksa placeholder
@@ -60,7 +64,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
   return (
     <div className="group relative">
-      <div className="aspect-square w-full overflow-hidden rounded-md bg-gray-200 lg:h-80">
+      <div className="aspect-square w-full overflow-hidden rounded-md bg-gray-200 lg:h-80 relative">
         <Image
           src={thumb}
           alt={product.name}
@@ -68,10 +72,13 @@ const ProductCard = ({ product }: ProductCardProps) => {
           height={400}
           className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
         />
+
+        {/* Favori */}
         <button
           onClick={handleFavoriteClick}
           onAnimationEnd={handleAnimationEnd}
           className="absolute top-3 right-3 p-2 bg-white/70 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity z-10"
+          aria-label={isFavorited ? 'Favorilerden çıkar' : 'Favorilere ekle'}
         >
           <Heart
             size={20}
@@ -81,7 +88,28 @@ const ProductCard = ({ product }: ProductCardProps) => {
             })}
           />
         </button>
+
+        {/* Sepete Ekle - Desktop: hover ile görünür */}
+        <button
+          onClick={handleAddToCart}
+          className="hidden md:flex absolute left-3 right-3 bottom-3 items-center justify-center gap-2 rounded-md bg-gray-900/90 text-white py-2 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+          aria-label="Sepete ekle"
+        >
+          <ShoppingBag size={18} />
+          <span className="text-sm font-medium">Sepete Ekle</span>
+        </button>
+
+        {/* Sepete Ekle - Mobil: her zaman küçük buton */}
+        <button
+          onClick={handleAddToCart}
+          className="md:hidden absolute right-3 bottom-3 inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white/90 px-3 py-1.5 text-gray-800 shadow-sm"
+          aria-label="Sepete ekle"
+        >
+          <ShoppingBag size={18} />
+          <span className="text-xs font-medium">Sepet</span>
+        </button>
       </div>
+
       <div className="mt-4 flex justify-between">
         <div>
           <h3 className="text-sm text-gray-700">
