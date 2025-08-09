@@ -94,16 +94,15 @@ export default function CartPage() {
                                     className="relative flex py-6 sm:py-10"
                                 >
                                     <div className="flex-shrink-0">
-                                        <Image
-                                            src={`https://placehold.co/200x200/F7F5F2/333333.png?text=${encodeURIComponent(
-                                                item.name,
-                                            )}`}
-                                            alt={item.name}
-                                            width={200}
-                                            height={200}
-                                            className="h-24 w-24 rounded-md object-cover object-center sm:h-48 sm:w-48"
-                                        />
-                                    </div>
+  <Image
+    src={item.imageUrl || `https://placehold.co/200x200/F7F5F2/333333.png?text=${encodeURIComponent(item.name)}`}
+    alt={item.name}
+    width={200}
+    height={200}
+    className="h-24 w-24 rounded-md object-cover object-center sm:h-48 sm:w-48"
+  />
+</div>
+
 
                                     <div className="ml-4 flex flex-1 flex-col justify-between sm:ml-6">
                                         <div>
