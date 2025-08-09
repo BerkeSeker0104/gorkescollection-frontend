@@ -656,3 +656,47 @@ export const getProductById = async (id: number): Promise<Product | null> => {
     return null;
   }
 };
+
+// --- EKLE: sayfalı çağrı ---
+export const getProductsPaged = async (opts: {
+  sortBy?: string;
+  categorySlug?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<{ items: Product[]; total: number; page: number; pageSize: number }> => {
+  const qs: string[] = [];
+  if (opts.sortBy) qs.push(`sortBy=${encodeURIComponent(opts.sortBy)}`);
+  if (opts.categorySlug) qs.push(`categorySlug=${encodeURIComponent(opts.categorySlug)}`);
+  if (opts.page) qs.push(`page=${opts.page}`);
+  if (opts.pageSize) qs.push(`pageSize=${opts.pageSize}`);
+
+  const url = `${API_URL}/api/products${qs.length ? `?${qs.join("&")}` : ""}`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) return { items: [], total: 0, page: opts.page ?? 1, pageSize: opts.pageSize ?? 20 };
+  const data = await res.json();
+  if (Array.isArray(data)) {
+    // Eski formatla uyumluluk
+    return { items: data as Product[], total: (data as Product[]).length, page: 1, pageSize: data.length };
+  }
+  return {
+    items: Array.isArray(data.items) ? (data.items as Product[]) : [],
+    total: Number(data.total ?? 0),
+    page: Number(data.page ?? (opts.page ?? 1)),
+    pageSize: Number(data.pageSize ?? (opts.pageSize ?? 20)),
+  };
+};
+
+// --- EKLE: tüm sayfaları birleştir ---
+export const getAllProducts = async (): Promise<Product[]> => {
+  const pageSize = 100; // backend en fazla 100'e izin veriyor
+  let page = 1;
+  const all: Product[] = [];
+
+  while (true) {
+    const { items, total } = await getProductsPaged({ page, pageSize });
+    all.push(...items);
+    if (all.length >= total || items.length === 0) break;
+    page++;
+  }
+  return all;
+};

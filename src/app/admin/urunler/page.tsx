@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Fragment } from "react";
 import { Product, Category } from "@/types";
-import { getProducts, deleteProduct, getCategories } from "@/lib/api";
+import { getAllProducts, deleteProduct, getCategories } from "@/lib/api";
 import Image from "next/image";
 import { Edit, Trash2, PlusCircle } from "lucide-react";
 import Link from "next/link";
@@ -16,7 +16,7 @@ export default function AdminProductsPage() {
   const fetchAll = async () => {
     setLoading(true);
     const [fetchedProducts, fetchedCategories] = await Promise.all([
-      getProducts(),
+      getAllProducts(),   // ✅ tüm sayfaları topla
       getCategories(),
     ]);
     setProducts(fetchedProducts);
@@ -29,25 +29,23 @@ export default function AdminProductsPage() {
   }, []);
 
   const getProductCategoryId = (p: Product): number | null => {
-    // p.categoryId || p.category?.id destekle
-    const flat = (p as unknown as { categoryId?: number })?.categoryId;
-    const rel = (p as unknown as { category?: { id?: number } })?.category?.id;
+    // backend artık categoryId veriyor; yine de esnek kalsın
+    const flat = (p as any)?.categoryId;
+    const rel  = (p as any)?.category?.id;
     return typeof flat === "number" ? flat : (typeof rel === "number" ? rel : null);
   };
 
   const getCategoryName = (id: number | null): string => {
     if (id == null) return "Diğer";
     return categories.find(c => c.id === id)?.name ?? "Diğer";
-    };
+  };
 
   // Filtre + kategori adına göre sıralama + gruplama
   const grouped = useMemo(() => {
-    // Filtre uygula
     const filtered = selectedCategoryId === "ALL"
       ? products
       : products.filter(p => getProductCategoryId(p) === selectedCategoryId);
 
-    // Kategori adına göre sırala (aynı kategoride ürün adına göre)
     const sorted = [...filtered].sort((a, b) => {
       const aCat = getCategoryName(getProductCategoryId(a));
       const bCat = getCategoryName(getProductCategoryId(b));
@@ -55,7 +53,6 @@ export default function AdminProductsPage() {
       return (a.name || "").localeCompare(b.name || "", "tr");
     });
 
-    // Gruplara ayır
     const map = new Map<string, Product[]>();
     for (const p of sorted) {
       const key = getCategoryName(getProductCategoryId(p));
@@ -188,6 +185,3 @@ export default function AdminProductsPage() {
     </div>
   );
 }
-
-// küçük yardımcı: Fragment importu
-import { Fragment } from "react";
