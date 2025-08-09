@@ -230,53 +230,52 @@ export const confirmEmail = async (userId: string, token: string): Promise<boole
 
 export const getCart = async (): Promise<CartDto | null> => {
   try {
-    const response = await fetch(`${API_URL}/api/cart`, {
+    const res = await fetch(`${API_URL}/api/cart`, {
       method: 'GET',
-      credentials: 'include', // 👈 guest cookie gönder
+      credentials: 'include',
       cache: 'no-store',
     });
-    if (response.status === 404) return null;
-    if (!response.ok) return null;
-    return response.json();
-  } catch (error) {
-    console.error('Sepet alınırken ağ hatası:', error);
+    if (res.status === 404) return null;
+    if (!res.ok) return null;
+    return res.json();
+  } catch (e) {
+    console.error('Sepet alınırken ağ hatası:', e);
     return null;
   }
 };
 
 export const addToCart = async (productId: number, quantity: number): Promise<CartDto | null> => {
   try {
-    const response = await fetch(
-      `${API_URL}/api/cart/items?productId=${productId}&quantity=${quantity}`,
-      {
-        method: 'POST',
-        credentials: 'include', // 👈 guest cookie gönder
-      }
-    );
-    if (!response.ok) return null;
-    return response.json();
-  } catch (error) {
-    console.error('Sepete eklerken ağ hatası:', error);
+    const res = await fetch(`${API_URL}/api/cart/items`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId, quantity }), // 👈 body
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch (e) {
+    console.error('Sepete eklerken ağ hatası:', e);
     return null;
   }
 };
 
 export const removeFromCart = async (productId: number, quantity: number): Promise<CartDto | null> => {
   try {
-    const response = await fetch(
-      `${API_URL}/api/cart/items?productId=${productId}&quantity=${quantity}`,
-      {
-        method: 'DELETE',
-        credentials: 'include', // 👈 guest cookie gönder
-      }
-    );
-    if (!response.ok) return null;
-    return await getCart();
-  } catch (error) {
-    console.error('Sepetten çıkarırken ağ hatası:', error);
+    const res = await fetch(`${API_URL}/api/cart/items`, {
+      method: 'DELETE',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId, quantity }), // 👈 body
+    });
+    if (!res.ok) return null;
+    return getCart();
+  } catch (e) {
+    console.error('Sepetten çıkarırken ağ hatası:', e);
     return null;
   }
 };
+
 
 export const createOrder = async (address: ShippingAddress): Promise<string | null> => {
   const token = getToken();
