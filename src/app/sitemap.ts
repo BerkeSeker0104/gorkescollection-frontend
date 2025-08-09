@@ -1,12 +1,15 @@
 import type { MetadataRoute } from "next";
 
-type Category = { slug: string; updatedAt?: string };
-type Product  = { id: number; updatedAt?: string };
+// Basit tipler (projeden import etmiyoruz; bu dosya server-only çalışır)
+type Category = { slug: string; updatedAt?: string | null };
+type Product  = { id: number; updatedAt?: string | null };
 
+// Site ve API tabanı
 const base = process.env.NEXT_PUBLIC_SITE_URL || "https://gorkescollection.com";
 const api  = process.env.NEXT_PUBLIC_API_URL || "https://gorkes-api.onrender.com";
 
-export const revalidate = 60 * 60 * 24; // 1 gün: Google'a günlük taze liste sun
+// Google'a günlük taze liste sun (ISR)
+export const revalidate = 60 * 60 * 24;
 
 async function fetchJSON<T>(url: string): Promise<T> {
   const res = await fetch(url, { next: { revalidate } });
@@ -15,20 +18,22 @@ async function fetchJSON<T>(url: string): Promise<T> {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Her durumda var olacak temel sayfalar
+  // Her durumda olan sabit sayfalar
   const urls: MetadataRoute.Sitemap = [
-    { url: `${base}/`, changeFrequency: "weekly", priority: 1 },
-    { url: `${base}/yeni-gelenler`, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${base}/`,               changeFrequency: "weekly", priority: 1 },
+    { url: `${base}/yeni-gelenler`,  changeFrequency: "weekly", priority: 0.8 },
   ];
 
   try {
-    // API uçların senin düzenine uyuyor: /api/categories ve /api/products
-    // (Eğer sayfalama varsa burayı güncelleriz.)
+    // Kategoriler ve ürünler
+    // Not: endpointlerin tüm liste döndürdüğünü varsayıyorum.
+    // Sayfalama varsa söyle, ona göre loop ekleyeyim.
     const [categories, products] = await Promise.all([
       fetchJSON<Category[]>(`${api}/api/categories`),
       fetchJSON<Product[]>(`${api}/api/products`),
     ]);
 
+    // Kategoriler
     for (const c of categories) {
       urls.push({
         url: `${base}/${c.slug}`,
@@ -38,6 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
     }
 
+    // Ürünler
     for (const p of products) {
       urls.push({
         url: `${base}/urun/${p.id}`,
@@ -47,7 +53,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
     }
   } catch (err) {
-    // API erişilemezse bile ana sayfalar yayımlansın
+    // API erişilemezse en azından sabit sayfalar yayınlansın
     console.error("sitemap build error:", err);
   }
 
