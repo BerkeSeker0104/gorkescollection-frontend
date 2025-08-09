@@ -229,12 +229,10 @@ export const confirmEmail = async (userId: string, token: string): Promise<boole
 /* ------------------------------------------------------------------------- */
 
 export const getCart = async (): Promise<CartDto | null> => {
-  const token = getToken();
-  if (!token) return null;
   try {
     const response = await fetch(`${API_URL}/api/cart`, {
       method: 'GET',
-      headers: { Authorization: `Bearer ${token}` },
+      credentials: 'include', // 👈 guest cookie gönder
       cache: 'no-store',
     });
     if (response.status === 404) return null;
@@ -247,17 +245,12 @@ export const getCart = async (): Promise<CartDto | null> => {
 };
 
 export const addToCart = async (productId: number, quantity: number): Promise<CartDto | null> => {
-  const token = getToken();
-  if (!token) {
-    alert('Lütfen önce giriş yapın.');
-    return null;
-  }
   try {
     const response = await fetch(
       `${API_URL}/api/cart/items?productId=${productId}&quantity=${quantity}`,
       {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include', // 👈 guest cookie gönder
       }
     );
     if (!response.ok) return null;
@@ -269,14 +262,12 @@ export const addToCart = async (productId: number, quantity: number): Promise<Ca
 };
 
 export const removeFromCart = async (productId: number, quantity: number): Promise<CartDto | null> => {
-  const token = getToken();
-  if (!token) return null;
   try {
     const response = await fetch(
       `${API_URL}/api/cart/items?productId=${productId}&quantity=${quantity}`,
       {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include', // 👈 guest cookie gönder
       }
     );
     if (!response.ok) return null;
