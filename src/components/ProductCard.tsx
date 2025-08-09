@@ -43,15 +43,13 @@ const ProductCard = ({ product }: ProductCardProps) => {
     e.preventDefault();
     e.stopPropagation();
     addItem(product.id);
-    // burada istersen kısa bir toast tetikleyebiliriz
+    // TODO: toast göstermek istersen buraya ekleyebiliriz
   };
 
-  // ✔️ Görsel kaynağı: ilk URL; yoksa placeholder
   const thumb =
     (product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls[0] : null) ||
     `https://placehold.co/400x400/F7F5F2/333333.png?text=${encodeURIComponent(product.name)}`;
 
-  // (Opsiyonel) Fiyatı TR formatında göster
   const priceText =
     typeof product.price === 'number'
       ? product.price.toLocaleString('tr-TR', {
@@ -89,20 +87,20 @@ const ProductCard = ({ product }: ProductCardProps) => {
           />
         </button>
 
-        {/* Sepete Ekle - Desktop: hover ile görünür */}
+        {/* Sepete Ekle - Desktop: hover ile görünür (z-20 ile link overlay'inin üstünde) */}
         <button
           onClick={handleAddToCart}
-          className="hidden md:flex absolute left-3 right-3 bottom-3 items-center justify-center gap-2 rounded-md bg-gray-900/90 text-white py-2 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+          className="hidden md:flex absolute left-3 right-3 bottom-3 items-center justify-center gap-2 rounded-md bg-gray-900/90 text-white py-2 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm z-20"
           aria-label="Sepete ekle"
         >
           <ShoppingBag size={18} />
           <span className="text-sm font-medium">Sepete Ekle</span>
         </button>
 
-        {/* Sepete Ekle - Mobil: her zaman küçük buton */}
+        {/* Sepete Ekle - Mobil: her zaman küçük buton (z-20) */}
         <button
           onClick={handleAddToCart}
-          className="md:hidden absolute right-3 bottom-3 inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white/90 px-3 py-1.5 text-gray-800 shadow-sm"
+          className="md:hidden absolute right-3 bottom-3 inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white/90 px-3 py-1.5 text-gray-800 shadow-sm z-20"
           aria-label="Sepete ekle"
         >
           <ShoppingBag size={18} />
@@ -114,7 +112,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <div>
           <h3 className="text-sm text-gray-700">
             <Link href={`/urun/${product.id}`}>
-              <span aria-hidden="true" className="absolute inset-0" />
+              {/* Link'in tüm kartı kaplayan overlay span'ı - z-0 ile butonların altında kalır */}
+              <span aria-hidden="true" className="absolute inset-0 z-0" />
               {product.name}
             </Link>
           </h3>
