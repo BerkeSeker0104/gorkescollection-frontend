@@ -1,3 +1,4 @@
+// src/app/admin/urunler/duzenle/[id]/page.tsx
 "use client";
 
 import ProductForm, { ProductFormData } from "@/components/ProductForm";
@@ -17,6 +18,7 @@ export default function EditProductPage() {
 
   useEffect(() => {
     let active = true;
+
     const load = async () => {
       try {
         const [cats, prod] = await Promise.all([
@@ -30,26 +32,23 @@ export default function EditProductPage() {
         if (active) setLoading(false);
       }
     };
+
     if (!Number.isFinite(productId)) {
       router.push("/admin/urunler");
       return;
     }
+
     load();
     return () => {
       active = false;
     };
   }, [productId, router]);
 
-  // --- Güvenli kategoriId çözücü (categoryId ya da category?.id olabilir) ---
+  // product -> güvenli categoryId
   const resolveCategoryId = (p: Product | null, cats: Category[]) => {
     if (!p) return cats?.[0]?.id ?? 0;
-
-    // TS tipi "categoryId" alanını bilmiyor olabilir; o yüzden esnek okuyoruz
-    const fromFlat =
-      (p as unknown as { categoryId?: number })?.categoryId;
-    const fromRel =
-      (p as unknown as { category?: { id?: number } })?.category?.id;
-
+    const fromFlat = (p as unknown as { categoryId?: number })?.categoryId;
+    const fromRel = (p as unknown as { category?: { id?: number } })?.category?.id;
     return Number(fromFlat ?? fromRel ?? cats?.[0]?.id ?? 0);
   };
 
@@ -57,16 +56,16 @@ export default function EditProductPage() {
   const initialData: ProductFormData | undefined = useMemo(() => {
     if (!product) return undefined;
 
-    const specsArray =
-      (product as unknown as { specifications?: Record<string, string> }).specifications
-        ? Object.entries(
-            (product as unknown as { specifications?: Record<string, string> })
-              .specifications as Record<string, string>
-          ).map(([key, value]) => ({ key, value: String(value ?? "") }))
-        : [];
+    const specsObj =
+      (product as unknown as { specifications?: Record<string, string> })
+        .specifications ?? {};
+    const specsArray = Object.entries(specsObj).map(([key, value]) => ({
+      key,
+      value: String(value ?? ""),
+    }));
 
     return {
-      name: product.name,
+      name: product.name ?? "",
       description: (product as any).description ?? "",
       price: Number((product as any).price) || 0,
       stockQuantity: Number((product as any).stockQuantity) || 0,
@@ -76,13 +75,14 @@ export default function EditProductPage() {
           ? (product as any).imageUrls
           : [""],
       specifications: specsArray,
+      isFeatured: Boolean((product as any).isFeatured), // ✅ önemli
     };
   }, [product, categories]);
 
   const handleUpdateProduct = async (data: ProductFormData) => {
     if (!product) return false;
 
-    const specsObject = (data.specifications || []).reduce((obj, it) => {
+    const specifications = (data.specifications || []).reduce((obj, it) => {
       if (it.key && it.value) obj[it.key] = it.value;
       return obj;
     }, {} as Record<string, string>);
@@ -94,13 +94,15 @@ export default function EditProductPage() {
       stockQuantity: data.stockQuantity,
       categoryId: data.categoryId,
       imageUrls: data.imageUrls,
-      specifications: specsObject,
+      specifications,
+      isFeatured: Boolean(data.isFeatured), // ✅ EKLENDİ
     };
 
     const ok = await updateProduct(
       (product as unknown as { id: number }).id,
       payload
     );
+
     if (ok) {
       alert("Ürün güncellendi");
       router.push("/admin/urunler");
