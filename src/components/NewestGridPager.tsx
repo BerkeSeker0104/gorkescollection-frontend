@@ -1,20 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import ProductCard from "@/components/ProductCard";
 import { getProductsPaged } from "@/lib/api";
 import type { Product } from "@/types";
 
 function useResponsivePageSize() {
-  // İlk render'da SSR güvenli başlangıç (desktop varsayalım 8)
-  const [pageSize, setPageSize] = useState<number>(8);
+  const [pageSize, setPageSize] = useState<number | null>(null); // Başlangıçta null
 
   useEffect(() => {
-    const calc = () => (window.innerWidth >= 1024 ? 8 : 4); // lg breakpoint ~1024px
+    const calc = () => (window.innerWidth >= 1024 ? 8 : 4); // lg breakpoint
     const apply = () => setPageSize(calc());
 
     apply();
-    // hafif debounce
+
     let t: any;
     const onResize = () => {
       clearTimeout(t);
@@ -33,23 +32,22 @@ function useResponsivePageSize() {
 export default function NewestGridPager() {
   const pageSize = useResponsivePageSize();
 
-  // müşteri sayfayı değiştirmedikçe 1. sayfada kalır
   const [page, setPage] = useState<number>(1);
   const [items, setItems] = useState<Product[]>([]);
   const [total, setTotal] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
 
   const totalPages = useMemo(
-    () => Math.max(1, Math.ceil(total / Math.max(1, pageSize))),
+    () => Math.max(1, Math.ceil(total / Math.max(1, pageSize || 1))),
     [total, pageSize]
   );
 
-  // pageSize değişirse (mobil<->desktop) sayfayı 1'e al, yeniden yükle
   useEffect(() => {
     setPage(1);
   }, [pageSize]);
 
   const load = useCallback(async () => {
+    if (pageSize === null) return; // henüz belirlenmedi
     setLoading(true);
     try {
       const res = await getProductsPaged({
@@ -65,8 +63,10 @@ export default function NewestGridPager() {
   }, [page, pageSize]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    if (pageSize !== null) {
+      load();
+    }
+  }, [load, pageSize]);
 
   const prev = () => setPage((p) => Math.max(1, p - 1));
   const next = () => setPage((p) => Math.min(totalPages, p + 1));
@@ -80,7 +80,7 @@ export default function NewestGridPager() {
         disabled={loading || page <= 1}
         aria-label="Önceki"
         className={[
-          "hidden sm:flex",                  // mobil çok küçükte gizle
+          "hidden sm:flex",
           "items-center justify-center",
           "absolute left-2 top-1/2 -translate-y-1/2 z-20",
           "h-10 w-10 rounded-full border bg-white/95 shadow",
@@ -114,8 +114,8 @@ export default function NewestGridPager() {
           <div
             className="
               grid gap-6
-              grid-cols-2              /* mobil: 2 sütun */
-              lg:grid-cols-4           /* desktop: 4 sütun */
+              grid-cols-2
+              lg:grid-cols-4
             "
           >
             {items.map((p) => (
@@ -125,7 +125,6 @@ export default function NewestGridPager() {
             ))}
           </div>
 
-          {/* küçük sayfalama altı */}
           {totalPages > 1 && (
             <div className="mt-6 flex items-center justify-center gap-2 text-sm">
               <button

@@ -84,44 +84,84 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Kategori Vitrini */}
-      <section className="container mx-auto px-6 py-20">
-        <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">
-          Koleksiyonu Keşfet
-        </h2>
+      {/* ---------------------------------------------------------------------
+     Kategori Vitrini
+     - Mobile: yatay kaydırmalı, kompakt kartlar
+     - Desktop: 3’lü grid (mevcut görünüm)
+---------------------------------------------------------------------- */}
+<section className="container mx-auto px-6 py-10 md:py-20">
+  <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-6 md:mb-12">
+    Koleksiyonu Keşfet
+  </h2>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {featuredCategories.map((category) => (
-            <Link
-              key={category.id}
-              href={`/${category.slug}`}
-              className="group block text-center bg-white p-6 rounded-lg shadow-sm hover:shadow-xl transition-shadow duration-300"
-            >
-              <div className="overflow-hidden rounded-md aspect-square">
-                <Image
-                  src={category.image}
-                  alt={category.name}
-                  width={400}
-                  height={400}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-              </div>
+  {/* Mobile: yatay scroll + snap */}
+  <div className="md:hidden -mx-6 px-6">
+    <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-2">
+      {featuredCategories.map((category) => (
+        <Link
+          key={category.id}
+          href={`/${category.slug}`}
+          className="snap-start shrink-0 w-[72%] xs:w-[64%] sm:w-[56%] bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden"
+        >
+          <div className="relative aspect-[4/3]">
+            <Image
+              src={category.image}
+              alt={category.name}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 70vw, 33vw"
+              priority={false}
+            />
+          </div>
+          <div className="p-3">
+            <h3 className="text-base font-semibold text-gray-800">
+              {category.name}
+            </h3>
+            <p className="mt-1 text-xs text-gray-500 line-clamp-2">
+              {category.description}
+            </p>
+            <span className="mt-3 inline-block text-xs font-medium text-gray-800 underline">
+              Şimdi Keşfet →
+            </span>
+          </div>
+        </Link>
+      ))}
+    </div>
+  </div>
 
-              <h3 className="mt-6 text-2xl font-semibold text-gray-800">
-                {category.name}
-              </h3>
-
-              <p className="mt-2 text-sm text-gray-500 leading-relaxed h-24">
-                {category.description}
-              </p>
-
-              <span className="mt-4 inline-block text-sm font-medium text-gray-800 group-hover:underline">
-                Şimdi Keşfet &rarr;
-              </span>
-            </Link>
-          ))}
+  {/* Tablet/desktop: eski 3’lü grid */}
+  <div className="hidden md:grid grid-cols-1 lg:grid-cols-3 gap-8">
+    {featuredCategories.map((category) => (
+      <Link
+        key={category.id}
+        href={`/${category.slug}`}
+        className="group block text-center bg-white p-6 rounded-lg shadow-sm hover:shadow-xl transition-shadow duration-300"
+      >
+        <div className="overflow-hidden rounded-md aspect-square">
+          <Image
+            src={category.image}
+            alt={category.name}
+            width={400}
+            height={400}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
         </div>
-      </section>
+
+        <h3 className="mt-6 text-2xl font-semibold text-gray-800">
+          {category.name}
+        </h3>
+
+        <p className="mt-2 text-sm text-gray-500 leading-relaxed h-24">
+          {category.description}
+        </p>
+
+        <span className="mt-4 inline-block text-sm font-medium text-gray-800 group-hover:underline">
+          Şimdi Keşfet →
+        </span>
+      </Link>
+    ))}
+  </div>
+</section>
 
       {/* Öne Çıkanlar (Marquee) */}
       {featured.length > 0 && (
