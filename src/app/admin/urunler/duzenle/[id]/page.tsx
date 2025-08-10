@@ -44,7 +44,7 @@ export default function EditProductPage() {
     };
   }, [productId, router]);
 
-  // product -> güvenli categoryId
+  // --- helpers ---
   const resolveCategoryId = (p: Product | null, cats: Category[]) => {
     if (!p) return cats?.[0]?.id ?? 0;
     const fromFlat = (p as unknown as { categoryId?: number })?.categoryId;
@@ -52,7 +52,21 @@ export default function EditProductPage() {
     return Number(fromFlat ?? fromRel ?? cats?.[0]?.id ?? 0);
   };
 
-  // Product -> ProductFormData map
+  // backend’ten ISO (UTC) gelebilir; datetime-local input için "YYYY-MM-DDTHH:mm" üret
+  const toLocalInput = (iso?: string | null) => {
+    if (!iso) return null;
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return null;
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    const mm = pad(d.getMonth() + 1);
+    const dd = pad(d.getDate());
+    const hh = pad(d.getHours());
+    const mi = pad(d.getMinutes());
+    return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+  };
+
+  // Product -> ProductFormData
   const initialData: ProductFormData | undefined = useMemo(() => {
     if (!product) return undefined;
 
@@ -75,7 +89,17 @@ export default function EditProductPage() {
           ? (product as any).imageUrls
           : [""],
       specifications: specsArray,
-      isFeatured: Boolean((product as any).isFeatured), // ✅ önemli
+      isFeatured: Boolean((product as any).isFeatured),
+
+      // --- İNDİRİM ALANLARI (Form şemanla uyumlu) ---
+      saleType: ((product as any).saleType ?? null) as "percentage" | "amount" | null,
+      saleValue:
+        typeof (product as any).saleValue === "number"
+          ? (product as any).saleValue
+          : null,
+      saleStartUtc: toLocalInput((product as any).saleStartUtc),
+      saleEndUtc: toLocalInput((product as any).saleEndUtc),
+      saleLabel: (product as any).saleLabel ?? null,
     };
   }, [product, categories]);
 
@@ -95,7 +119,14 @@ export default function EditProductPage() {
       categoryId: data.categoryId,
       imageUrls: data.imageUrls,
       specifications,
-      isFeatured: Boolean(data.isFeatured), // ✅ EKLENDİ
+      isFeatured: Boolean(data.isFeatured),
+
+      // --- İNDİRİM ALANLARI (Form submit’i ISO/UTC verecek şekilde ayarlı) ---
+      saleType: (data.saleType ?? null) as "percentage" | "amount" | null,
+      saleValue: data.saleValue ?? null,
+      saleStartUtc: data.saleStartUtc ?? null,
+      saleEndUtc: data.saleEndUtc ?? null,
+      saleLabel: data.saleLabel ?? null,
     };
 
     const ok = await updateProduct(

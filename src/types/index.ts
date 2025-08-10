@@ -1,12 +1,23 @@
-// src/types/index.ts
 export interface Product {
   id: number;
   name: string;
   description: string;
+
+  // Eski alan (geriye dönük): bazı endpointler sadece price döndürüyor olabilir
   price: number;
+
+  // İndirim sistemi (backend’le uyumlu) — bazı endpointlerde gelmeyebilir diye ? koyduk
+  priceOriginal?: number;       // indirimsiz fiyat
+  priceFinal?: number;          // indirimli fiyat
+  isOnSaleNow?: boolean;        // şu an indirim aktif mi
+  discountPercent?: number;     // yüzde (0–100)
+  saleLabel?: string | null;    // rozet yazısı (örn. “Sezona Özel %10”)
+  saleStartUtc?: string | null; // ISO datetime
+  saleEndUtc?: string | null;
+
   stockQuantity: number;
   categoryName: string;
-  categoryId: number;   
+  categoryId: number;
   categorySlug: string;
   isFeatured?: boolean;
   imageUrls: string[];
@@ -21,7 +32,7 @@ export interface Category {
 
 export interface CartItemDto {
   productId: number;
-  name:string;
+  name: string;
   price: number;
   imageUrl: string;
   quantity: number;
@@ -33,7 +44,6 @@ export interface CartDto {
   items: CartItemDto[];
 }
 
-// --- GÜNCELLENDİ ---
 export interface ShippingAddress {
   fullName: string;
   address1: string;
@@ -42,7 +52,7 @@ export interface ShippingAddress {
   district: string;
   postalCode: string;
   country: string;
-  phoneNumber: string; // <-- YENİ
+  phoneNumber: string;
 }
 
 export interface UserDto {
@@ -82,7 +92,6 @@ export interface Order {
   trackingNumber?: string;
 }
 
-// --- GÜNCELLENDİ ---
 export interface Address {
   id: number;
   fullName: string;
@@ -92,7 +101,7 @@ export interface Address {
   district: string;
   postalCode: string;
   country: string;
-  phoneNumber: string; // <-- YENİ
+  phoneNumber: string;
   isDefault: boolean;
 }
 
@@ -105,6 +114,13 @@ export interface AdminProductDto {
   imageUrls: string[];
   specifications: Record<string, string>;
   isFeatured: boolean;
+
+  // İndirim alanları — opsiyonel
+  saleType?: 'percentage' | 'amount' | null;
+  saleValue?: number | null;
+  saleStartUtc?: string | null; // ISO
+  saleEndUtc?: string | null;   // ISO
+  saleLabel?: string | null;
 }
 
 export interface ShipOrderDto {

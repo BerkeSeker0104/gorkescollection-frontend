@@ -1,9 +1,10 @@
+// src/components/ProductCard.tsx
 'use client';
 
 import { Product } from '@/types';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Heart, ShoppingBag } from 'lucide-react';
+import { Heart, ShoppingBag, Percent } from 'lucide-react';
 import { useFavorites } from '@/context/FavoritesContext';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
@@ -16,6 +17,14 @@ interface ProductCardProps {
   product: Product;
 }
 
+const formatTRY = (n: number) =>
+  n.toLocaleString('tr-TR', {
+    style: 'currency',
+    currency: 'TRY',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
 const ProductCard = ({ product }: ProductCardProps) => {
   const { isFavorite, toggleFavoriteStatus } = useFavorites();
   const { user } = useAuth();
@@ -24,6 +33,19 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const [isAnimating, setIsAnimating] = useState(false);
 
   const isFavorited = isFavorite(product.id);
+
+  // ---- fiyat mantığı ----
+  const base =
+    typeof product.priceOriginal === 'number' ? product.priceOriginal : product.price;
+  const final =
+    product.isOnSaleNow && typeof product.priceFinal === 'number'
+      ? product.priceFinal
+      : base;
+  const hasDiscount = Boolean(product.isOnSaleNow && final < base);
+
+  const thumb =
+    (product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls[0] : null) ||
+    `https://placehold.co/400x400/F7F5F2/333333.png?text=${encodeURIComponent(product.name)}`;
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -53,28 +75,12 @@ const ProductCard = ({ product }: ProductCardProps) => {
             Sepete git
           </Link>
         </span>,
-        {
-          duration: 3000,
-        }
+        { duration: 3000 }
       );
     } catch {
       toast.error('Sepete eklenemedi');
     }
   };
-
-  const thumb =
-    (product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls[0] : null) ||
-    `https://placehold.co/400x400/F7F5F2/333333.png?text=${encodeURIComponent(product.name)}`;
-
-  const priceText =
-    typeof product.price === 'number'
-      ? product.price.toLocaleString('tr-TR', {
-          style: 'currency',
-          currency: 'TRY',
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })
-      : `${product.price} TL`;
 
   return (
     <div className="group relative">
@@ -86,6 +92,16 @@ const ProductCard = ({ product }: ProductCardProps) => {
           height={400}
           className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
         />
+
+        {/* İndirim rozeti */}
+        {hasDiscount && (
+          <div className="absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-red-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
+            <Percent size={14} />
+            {typeof product.discountPercent === 'number'
+              ? `-%${Math.round(product.discountPercent)}`
+              : product.saleLabel || 'İndirim'}
+          </div>
+        )}
 
         {/* Favori butonu */}
         <button
@@ -124,16 +140,23 @@ const ProductCard = ({ product }: ProductCardProps) => {
         </button>
       </div>
 
-      <div className="mt-4 flex justify-between">
-        <div>
-          <h3 className="text-sm text-gray-700">
-            <Link href={`/urun/${product.id}`}>
-              <span aria-hidden="true" className="absolute inset-0 z-0" />
-              {product.name}
-            </Link>
-          </h3>
-        </div>
-        <p className="text-sm font-medium text-gray-900">{priceText}</p>
+      <div className="mt-4 space-y-1">
+        <h3 className="text-sm text-gray-700 line-clamp-1">
+          <Link href={`/urun/${product.id}`}>
+            <span aria-hidden="true" className="absolute inset-0 z-0" />
+            {product.name}
+          </Link>
+        </h3>
+
+        {/* Fiyat alanı: indirimliyse üstü çizili + yeni fiyat */}
+        {hasDiscount ? (
+          <div className="flex items-baseline gap-2">
+            <span className="text-sm text-gray-500 line-through">{formatTRY(base)}</span>
+            <span className="text-sm font-semibold text-gray-900">{formatTRY(final)}</span>
+          </div>
+        ) : (
+          <p className="text-sm font-medium text-gray-900">{formatTRY(base)}</p>
+        )}
       </div>
     </div>
   );
