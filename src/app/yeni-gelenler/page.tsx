@@ -8,13 +8,14 @@ export const metadata = {
   description: "Koleksiyona en son eklenen ürünler.",
 };
 
-// Next.js App Router: searchParams ile ?page=... yakalıyoruz
 export default async function NewArrivalsPage({
   searchParams,
 }: {
-  searchParams?: { page?: string };
+  // Next.js 15: searchParams bir Promise olabilir
+  searchParams?: Promise<{ page?: string }>;
 }) {
-  const page = Math.max(1, Number(searchParams?.page ?? 1));
+  const sp = (await searchParams) ?? {};
+  const page = Math.max(1, Number(sp.page ?? 1));
   const pageSize = 24;
 
   const { items: products, total } = await getProductsPaged({
@@ -43,7 +44,6 @@ export default async function NewArrivalsPage({
               ))}
             </div>
 
-            {/* Sayfalama */}
             {totalPages > 1 && (
               <nav
                 className="mt-10 flex items-center justify-center gap-2"
@@ -53,7 +53,6 @@ export default async function NewArrivalsPage({
                   ‹ Önceki
                 </PageLink>
 
-                {/* Basit sayfa numaraları */}
                 {Array.from({ length: totalPages }).map((_, i) => {
                   const n = i + 1;
                   const active = n === page;
@@ -73,7 +72,10 @@ export default async function NewArrivalsPage({
                   );
                 })}
 
-                <PageLink href={`/yeni-gelenler?page=${page + 1}`} disabled={page >= totalPages}>
+                <PageLink
+                  href={`/yeni-gelenler?page=${page + 1}`}
+                  disabled={page >= totalPages}
+                >
                   Sonraki ›
                 </PageLink>
               </nav>
@@ -104,7 +106,7 @@ function PageLink({
         {children}
       </span>
     );
-    }
+  }
   return (
     <Link
       href={href}
