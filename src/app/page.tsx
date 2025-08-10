@@ -3,8 +3,8 @@ import { Category, Product } from '@/types';
 import Link from 'next/link';
 import Image from 'next/image';
 import ProductCard from '@/components/ProductCard';
-import { getProducts, getCategories } from '@/lib/api';
-import ProductMarquee from '@/components/ProductMarquee'; // ↩︎ yeni bileşen
+import { getProducts, getCategories, getFeaturedProducts } from '@/lib/api';
+import ProductMarquee from '@/components/ProductMarquee';
 
 // -----------------------------------------------------------------------------
 // ÖNE ÇIKAN KATEGORİ TİPİ
@@ -15,17 +15,21 @@ type FeaturedCategory = Category & {
 };
 
 // -----------------------------------------------------------------------------
-// ANA SAYFA BİLEŞENİ
+// ANA SAYFA
 // -----------------------------------------------------------------------------
 export default async function HomePage() {
-  // Ürünleri "en yeni" sıralamasıyla, kategorileri de paralel olarak çekiyoruz
-  const [products, allCategories] = await Promise.all([
-    getProducts('newest'), // ← parametre eklendi
+  // 1) Öne çıkanlar (marquee için) + 2) En yeniler (alttaki grid) + 3) Kategoriler
+  const [featured, newestAll, allCategories] = await Promise.all([
+    getFeaturedProducts(12),
+    getProducts('newest'),
     getCategories(),
   ]);
 
+  // Yeni çıkanlarda sadece ilk 8 ürünü gösterelim
+  const newest = (newestAll || []).slice(0, 8);
+
   // ---------------------------------------------------------------------------
-  // STATİK ÖNE ÇIKAN KATEGORİ VERİSİ
+  // Statik öne çıkan kategori görselleri + açıklamalar
   // ---------------------------------------------------------------------------
   const featuredCategoryData = [
     {
@@ -48,9 +52,6 @@ export default async function HomePage() {
     },
   ];
 
-  // ---------------------------------------------------------------------------
-  // STATİK + DİNAMİK VERİYİ BİRLEŞTİR → TİP GÜVENLİ DİZİ
-  // ---------------------------------------------------------------------------
   const featuredCategories: FeaturedCategory[] = featuredCategoryData
     .map((staticCat) => {
       const dbCat = allCategories.find((c) => c.slug === staticCat.slug);
@@ -58,14 +59,11 @@ export default async function HomePage() {
     })
     .filter(Boolean) as FeaturedCategory[];
 
-  // ---------------------------------------------------------------------------
-  // JSX
-  // ---------------------------------------------------------------------------
   return (
     <div className="bg-[#F7F5F2]">
       {/* ---------------------------------------------------------------------
-           1. Hero Banner
-         ------------------------------------------------------------------- */}
+           1) Hero
+      ---------------------------------------------------------------------- */}
       <section className="relative h-[60vh] md:h-[80vh] w-full overflow-hidden">
         <video
           className="absolute top-1/2 left-1/2 w-full h-full object-cover -translate-x-1/2 -translate-y-1/2"
@@ -94,8 +92,8 @@ export default async function HomePage() {
       </section>
 
       {/* ---------------------------------------------------------------------
-           2. Kategori Vitrini (Öne Çıkanlar)
-         ------------------------------------------------------------------- */}
+           2) Kategori Vitrini (Öne Çıkan Kategoriler)
+      ---------------------------------------------------------------------- */}
       <section className="container mx-auto px-6 py-20">
         <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">
           Koleksiyonu Keşfet
@@ -135,16 +133,33 @@ export default async function HomePage() {
       </section>
 
       {/* ---------------------------------------------------------------------
-           3. Yeni Gelenler  ➜  ProductMarquee (yeni tasarım)
-         ------------------------------------------------------------------- */}
-      <section className="py-20">
-        <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">
-          Yeni Gelenler
-        </h2>
+           3) Öne Çıkanlar (Marquee)
+      ---------------------------------------------------------------------- */}
+      {featured.length > 0 && (
+        <section className="py-16">
+          <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">
+            Öne Çıkanlar
+          </h2>
+          <ProductMarquee products={featured} />
+        </section>
+      )}
 
-        {/* Statik grid yerine hareketli şerit */}
-        <ProductMarquee products={products} />
-      </section>
+      {/* ---------------------------------------------------------------------
+           4) Yeni Çıkanlar (ikili grid)
+      ---------------------------------------------------------------------- */}
+      {newest.length > 0 && (
+        <section className="container mx-auto px-6 pb-24">
+          <h2 className="text-3xl font-bold text-center text-gray-800 mb-10">
+            Yeni Çıkanlar
+          </h2>
+
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {newest.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

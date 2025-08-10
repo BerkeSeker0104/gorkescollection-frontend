@@ -700,3 +700,17 @@ export const getAllProducts = async (): Promise<Product[]> => {
   }
   return all;
 };
+
+// --- ÖNE ÇIKANLAR ---
+export const getFeaturedProducts = async (take = 12): Promise<Product[]> => {
+  try {
+    const url = `${API_URL}/api/products/featured?take=${take}`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return [];
+    return res.json();
+  } catch (e) {
+    console.error("Öne çıkanlar alınamadı:", e);
+    return [];
+  }
+};
+
