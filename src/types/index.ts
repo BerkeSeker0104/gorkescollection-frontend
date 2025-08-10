@@ -8,6 +8,7 @@ export interface Product {
   categoryName: string;
   categoryId: number;   
   categorySlug: string;
+  isFeatured?: boolean;
   imageUrls: string[];
   specifications: Record<string, string>;
 }
@@ -103,6 +104,7 @@ export interface AdminProductDto {
   categoryId: number;
   imageUrls: string[];
   specifications: Record<string, string>;
+  isFeatured: boolean;
 }
 
 export interface ShipOrderDto {

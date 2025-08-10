@@ -1,36 +1,29 @@
 // Dosya Yolu: src/app/page.tsx
-import { Category, Product } from '@/types';
+import { Category } from '@/types';
 import Link from 'next/link';
 import Image from 'next/image';
 import ProductCard from '@/components/ProductCard';
 import { getProducts, getCategories, getFeaturedProducts } from '@/lib/api';
 import ProductMarquee from '@/components/ProductMarquee';
 
-// -----------------------------------------------------------------------------
-// ÖNE ÇIKAN KATEGORİ TİPİ
-// -----------------------------------------------------------------------------
+// Öne çıkan kategori tipi (statik görsel+açıklama ile DB'deki category birleşiyor)
 type FeaturedCategory = Category & {
   image: string;
   description: string;
 };
 
-// -----------------------------------------------------------------------------
-// ANA SAYFA
-// -----------------------------------------------------------------------------
 export default async function HomePage() {
-  // 1) Öne çıkanlar (marquee için) + 2) En yeniler (alttaki grid) + 3) Kategoriler
+  // 1) Öne çıkanlar (marquee)  2) En yeniler (alttaki grid)  3) Kategoriler
   const [featured, newestAll, allCategories] = await Promise.all([
     getFeaturedProducts(12),
     getProducts('newest'),
     getCategories(),
   ]);
 
-  // Yeni çıkanlarda sadece ilk 8 ürünü gösterelim
+  // Yeni çıkanlarda ilk 8 ürünü göster (isteğe göre arttırılabilir)
   const newest = (newestAll || []).slice(0, 8);
 
-  // ---------------------------------------------------------------------------
   // Statik öne çıkan kategori görselleri + açıklamalar
-  // ---------------------------------------------------------------------------
   const featuredCategoryData = [
     {
       slug: 'kolyeler',
@@ -52,6 +45,7 @@ export default async function HomePage() {
     },
   ];
 
+  // Statik + DB kategori birleşimi
   const featuredCategories: FeaturedCategory[] = featuredCategoryData
     .map((staticCat) => {
       const dbCat = allCategories.find((c) => c.slug === staticCat.slug);
@@ -61,9 +55,7 @@ export default async function HomePage() {
 
   return (
     <div className="bg-[#F7F5F2]">
-      {/* ---------------------------------------------------------------------
-           1) Hero
-      ---------------------------------------------------------------------- */}
+      {/* Hero */}
       <section className="relative h-[60vh] md:h-[80vh] w-full overflow-hidden">
         <video
           className="absolute top-1/2 left-1/2 w-full h-full object-cover -translate-x-1/2 -translate-y-1/2"
@@ -91,9 +83,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ---------------------------------------------------------------------
-           2) Kategori Vitrini (Öne Çıkan Kategoriler)
-      ---------------------------------------------------------------------- */}
+      {/* Kategori Vitrini */}
       <section className="container mx-auto px-6 py-20">
         <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">
           Koleksiyonu Keşfet
@@ -132,9 +122,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ---------------------------------------------------------------------
-           3) Öne Çıkanlar (Marquee)
-      ---------------------------------------------------------------------- */}
+      {/* Öne Çıkanlar (Marquee) */}
       {featured.length > 0 && (
         <section className="py-16">
           <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">
@@ -144,15 +132,12 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* ---------------------------------------------------------------------
-           4) Yeni Çıkanlar (ikili grid)
-      ---------------------------------------------------------------------- */}
+      {/* Yeni Çıkanlar (2’li grid, responsive) */}
       {newest.length > 0 && (
         <section className="container mx-auto px-6 pb-24">
           <h2 className="text-3xl font-bold text-center text-gray-800 mb-10">
             Yeni Çıkanlar
           </h2>
-
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {newest.map((p) => (
               <ProductCard key={p.id} product={p} />

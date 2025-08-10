@@ -33,6 +33,7 @@ export default function NewProductPage() {
       categoryId: data.categoryId,
       imageUrls: data.imageUrls,
       specifications: specsAsObject,
+      isFeatured: (data as any).isFeatured ?? false,
     };
 
     const newProduct = await createProduct(finalData);
