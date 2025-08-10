@@ -5,6 +5,7 @@ import Image from 'next/image';
 import ProductCard from '@/components/ProductCard';
 import { getProducts, getCategories, getFeaturedProducts } from '@/lib/api';
 import ProductMarquee from '@/components/ProductMarquee';
+import NewestGridPager from "@/components/NewestGridPager";
 
 // Öne çıkan kategori tipi (statik görsel+açıklama ile DB'deki category birleşiyor)
 type FeaturedCategory = Category & {
@@ -126,25 +127,19 @@ export default async function HomePage() {
       {featured.length > 0 && (
         <section className="py-16">
           <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">
-            Öne Çıkanlar
+            Vitrin
           </h2>
           <ProductMarquee products={featured} />
         </section>
       )}
 
-      {/* Yeni Çıkanlar (2’li grid, responsive) */}
-      {newest.length > 0 && (
-        <section className="container mx-auto px-6 pb-24">
-          <h2 className="text-3xl font-bold text-center text-gray-800 mb-10">
-            Yeni Çıkanlar
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {newest.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
-        </section>
-      )}
+      {/* 4) Yeni Çıkanlar (2x4 ve sayfa sayfa) */}
+<section className="container mx-auto px-6 pb-24">
+  <h2 className="text-3xl font-bold text-center text-gray-800 mb-10">
+    Yeni Gelenler
+  </h2>
+  <NewestGridPager pageSize={8} />
+</section>
     </div>
   );
 }
