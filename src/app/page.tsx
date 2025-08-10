@@ -139,6 +139,7 @@ export default async function HomePage() {
     Yeni Gelenler
   </h2>
 </section>
+<NewestGridPager />
     </div>
   );
 }
