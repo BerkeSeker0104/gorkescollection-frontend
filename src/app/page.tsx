@@ -134,11 +134,10 @@ export default async function HomePage() {
       )}
 
       {/* 4) Yeni Çıkanlar (2x4 ve sayfa sayfa) */}
-<section className="container mx-auto px-6 pb-24">
-  <h2 className="text-3xl font-bold text-center text-gray-800 mb-10">
+<section className="container mx-auto px-6 pb-6">
+  <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
     Yeni Gelenler
   </h2>
-  <NewestGridPager pageSize={8} />
 </section>
     </div>
   );

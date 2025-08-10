@@ -1,183 +1,158 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import ProductCard from "@/components/ProductCard";
 import { getProductsPaged } from "@/lib/api";
-import { Product } from "@/types";
-import ProductCard from "./ProductCard";
+import type { Product } from "@/types";
 
-type Props = {
-  pageSize?: number; // 8 = 2 satır x 4 sütun
-  initialPage?: number;
-};
-
-export default function NewestGridPager({ pageSize = 8, initialPage = 1 }: Props) {
-  const [page, setPage] = useState(initialPage);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [products, setProducts] = useState<Product[]>([]);
-  const cacheRef = useRef<Map<number, Product[]>>(new Map());
-
-  const canPrev = page > 1;
-  const canNext = page < totalPages;
-
-  const load = async (p: number) => {
-    if (cacheRef.current.has(p)) {
-      setProducts(cacheRef.current.get(p)!);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    const { items, total } = await getProductsPaged({
-      sortBy: "newest",
-      page: p,
-      pageSize,
-    });
-    cacheRef.current.set(p, items);
-    setProducts(items);
-    setTotalPages(Math.max(1, Math.ceil(total / pageSize)));
-    setLoading(false);
-  };
+function useResponsivePageSize() {
+  // İlk render'da SSR güvenli başlangıç (desktop varsayalım 8)
+  const [pageSize, setPageSize] = useState<number>(8);
 
   useEffect(() => {
-    load(page);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const calc = () => (window.innerWidth >= 1024 ? 8 : 4); // lg breakpoint ~1024px
+    const apply = () => setPageSize(calc());
+
+    apply();
+    // hafif debounce
+    let t: any;
+    const onResize = () => {
+      clearTimeout(t);
+      t = setTimeout(apply, 120);
+    };
+    window.addEventListener("resize", onResize);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("resize", onResize);
+    };
+  }, []);
+
+  return pageSize;
+}
+
+export default function NewestGridPager() {
+  const pageSize = useResponsivePageSize();
+
+  // müşteri sayfayı değiştirmedikçe 1. sayfada kalır
+  const [page, setPage] = useState<number>(1);
+  const [items, setItems] = useState<Product[]>([]);
+  const [total, setTotal] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  const totalPages = useMemo(
+    () => Math.max(1, Math.ceil(total / Math.max(1, pageSize))),
+    [total, pageSize]
+  );
+
+  // pageSize değişirse (mobil<->desktop) sayfayı 1'e al, yeniden yükle
+  useEffect(() => {
+    setPage(1);
+  }, [pageSize]);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await getProductsPaged({
+        sortBy: "newest",
+        page,
+        pageSize,
+      });
+      setItems(res.items || []);
+      setTotal(res.total || 0);
+    } finally {
+      setLoading(false);
+    }
   }, [page, pageSize]);
 
-  // Klavye ve yatay teker desteği
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight" && canNext) setPage((x) => x + 1);
-      if (e.key === "ArrowLeft" && canPrev) setPage((x) => x - 1);
-    };
-    const onWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-        if (e.deltaX > 0 && canNext) setPage((x) => x + 1);
-        if (e.deltaX < 0 && canPrev) setPage((x) => x - 1);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    window.addEventListener("wheel", onWheel, { passive: true });
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      window.removeEventListener("wheel", onWheel);
-    };
-  }, [canNext, canPrev]);
+    load();
+  }, [load]);
 
-  const grid = useMemo(() => {
-    // Daha küçük kart görünümü: kolon sayısını artır, kartı max-width ile daralt
-    return (
-      <div
-        className="
-          grid gap-5
-          grid-cols-2
-          sm:grid-cols-3
-          lg:grid-cols-4
-          xl:grid-cols-5
-          2xl:grid-cols-6
-        "
-      >
-        {products.map((p) => (
-          <div key={p.id} className="max-w-[240px] w-full mx-auto">
-            <ProductCard product={p} />
-          </div>
-        ))}
-      </div>
-    );
-  }, [products]);
+  const prev = () => setPage((p) => Math.max(1, p - 1));
+  const next = () => setPage((p) => Math.min(totalPages, p + 1));
 
   return (
-    <div className="relative">
-      {/* Sol/sağ oklar — z-index yükseltildi */}
+    <section className="relative container mx-auto px-6 pb-24">
+      {/* Oklar */}
       <button
         type="button"
+        onClick={prev}
+        disabled={loading || page <= 1}
         aria-label="Önceki"
-        onClick={() => canPrev && setPage((x) => x - 1)}
-        disabled={!canPrev}
-        className="
-          hidden md:flex
-          absolute left-1 lg:-left-4 top-1/2 -translate-y-1/2
-          h-10 w-10 items-center justify-center
-          rounded-full border bg-white/95 shadow-md
-          z-50
-          disabled:opacity-40
-        "
+        className={[
+          "hidden sm:flex",                  // mobil çok küçükte gizle
+          "items-center justify-center",
+          "absolute left-2 top-1/2 -translate-y-1/2 z-20",
+          "h-10 w-10 rounded-full border bg-white/95 shadow",
+          "hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed",
+        ].join(" ")}
       >
         ‹
       </button>
+
       <button
         type="button"
+        onClick={next}
+        disabled={loading || page >= totalPages}
         aria-label="Sonraki"
-        onClick={() => canNext && setPage((x) => x + 1)}
-        disabled={!canNext}
-        className="
-          hidden md:flex
-          absolute right-1 lg:-right-4 top-1/2 -translate-y-1/2
-          h-10 w-10 items-center justify-center
-          rounded-full border bg-white/95 shadow-md
-          z-50
-          disabled:opacity-40
-        "
+        className={[
+          "hidden sm:flex",
+          "items-center justify-center",
+          "absolute right-2 top-1/2 -translate-y-1/2 z-20",
+          "h-10 w-10 rounded-full border bg-white/95 shadow",
+          "hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed",
+        ].join(" ")}
       >
         ›
       </button>
 
+      {/* Grid */}
       {loading ? (
         <div className="py-12 text-center text-gray-500">Yükleniyor…</div>
-      ) : products.length === 0 ? (
-        <div className="py-12 text-center text-gray-500">Yeni ürün yok.</div>
-      ) : (
-        grid
-      )}
+      ) : items.length > 0 ? (
+        <>
+          <div
+            className="
+              grid gap-6
+              grid-cols-2              /* mobil: 2 sütun */
+              lg:grid-cols-4           /* desktop: 4 sütun */
+            "
+          >
+            {items.map((p) => (
+              <div key={p.id} className="w-full">
+                <ProductCard product={p} />
+              </div>
+            ))}
+          </div>
 
-      {/* Sayfa numaraları */}
-      {totalPages > 1 && (
-        <nav className="mt-8 flex items-center justify-center gap-2" aria-label="Sayfalama">
-          <PageBtn onClick={() => setPage((x) => Math.max(1, x - 1))} disabled={!canPrev}>
-            ‹ Önceki
-          </PageBtn>
-          {Array.from({ length: totalPages }).map((_, i) => {
-            const n = i + 1;
-            const active = n === page;
-            return (
+          {/* küçük sayfalama altı */}
+          {totalPages > 1 && (
+            <div className="mt-6 flex items-center justify-center gap-2 text-sm">
               <button
-                key={n}
-                onClick={() => setPage(n)}
-                className={[
-                  "px-3 py-1.5 rounded border text-sm",
-                  active
-                    ? "bg-gray-900 text-white border-gray-900"
-                    : "bg-white text-gray-800 border-gray-200 hover:bg-gray-100",
-                ].join(" ")}
+                onClick={prev}
+                disabled={page <= 1 || loading}
+                className="px-3 py-1.5 rounded border bg-white hover:bg-gray-50 disabled:opacity-40"
               >
-                {n}
+                ‹ Önceki
               </button>
-            );
-          })}
-          <PageBtn onClick={() => setPage((x) => Math.min(totalPages, x + 1))} disabled={!canNext}>
-            Sonraki ›
-          </PageBtn>
-        </nav>
+              <span className="px-2 text-gray-600">
+                Sayfa {page} / {totalPages}
+              </span>
+              <button
+                onClick={next}
+                disabled={page >= totalPages || loading}
+                className="px-3 py-1.5 rounded border bg-white hover:bg-gray-50 disabled:opacity-40"
+              >
+                Sonraki ›
+              </button>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="py-12 text-center text-gray-500">
+          Yeni ürünler yakında eklenecektir.
+        </div>
       )}
-    </div>
-  );
-}
-
-function PageBtn({
-  onClick,
-  disabled,
-  children,
-}: {
-  onClick: () => void;
-  disabled?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className="px-3 py-1.5 rounded border border-gray-200 text-sm bg-white text-gray-800 hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-white"
-    >
-      {children}
-    </button>
+    </section>
   );
 }
