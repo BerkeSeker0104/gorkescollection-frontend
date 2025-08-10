@@ -1,4 +1,3 @@
-// src/components/NewestGridPager.tsx
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -7,7 +6,7 @@ import { Product } from "@/types";
 import ProductCard from "./ProductCard";
 
 type Props = {
-  pageSize?: number; // varsayılan 8 (2x4)
+  pageSize?: number; // 8 = 2 satır x 4 sütun
   initialPage?: number;
 };
 
@@ -22,7 +21,6 @@ export default function NewestGridPager({ pageSize = 8, initialPage = 1 }: Props
   const canNext = page < totalPages;
 
   const load = async (p: number) => {
-    // hafif cache
     if (cacheRef.current.has(p)) {
       setProducts(cacheRef.current.get(p)!);
       setLoading(false);
@@ -45,7 +43,7 @@ export default function NewestGridPager({ pageSize = 8, initialPage = 1 }: Props
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, pageSize]);
 
-  // Klavye ve teker desteği (desktop’ta rahat kullanım)
+  // Klavye ve yatay teker desteği
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight" && canNext) setPage((x) => x + 1);
@@ -66,11 +64,22 @@ export default function NewestGridPager({ pageSize = 8, initialPage = 1 }: Props
   }, [canNext, canPrev]);
 
   const grid = useMemo(() => {
-    // 2 satır x 4 sütun (lg ve üstü), alt breakpointlerde responsive
+    // Daha küçük kart görünümü: kolon sayısını artır, kartı max-width ile daralt
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div
+        className="
+          grid gap-5
+          grid-cols-2
+          sm:grid-cols-3
+          lg:grid-cols-4
+          xl:grid-cols-5
+          2xl:grid-cols-6
+        "
+      >
         {products.map((p) => (
-          <ProductCard key={p.id} product={p} />
+          <div key={p.id} className="max-w-[240px] w-full mx-auto">
+            <ProductCard product={p} />
+          </div>
         ))}
       </div>
     );
@@ -78,13 +87,20 @@ export default function NewestGridPager({ pageSize = 8, initialPage = 1 }: Props
 
   return (
     <div className="relative">
-      {/* Sol/sağ oklar (desktop’ta rahat gezinme) */}
+      {/* Sol/sağ oklar — z-index yükseltildi */}
       <button
         type="button"
         aria-label="Önceki"
         onClick={() => canPrev && setPage((x) => x - 1)}
         disabled={!canPrev}
-        className="hidden md:flex absolute -left-3 top-1/2 -translate-y-1/2 h-10 w-10 items-center justify-center rounded-full border bg-white/90 shadow disabled:opacity-40"
+        className="
+          hidden md:flex
+          absolute left-1 lg:-left-4 top-1/2 -translate-y-1/2
+          h-10 w-10 items-center justify-center
+          rounded-full border bg-white/95 shadow-md
+          z-50
+          disabled:opacity-40
+        "
       >
         ‹
       </button>
@@ -93,7 +109,14 @@ export default function NewestGridPager({ pageSize = 8, initialPage = 1 }: Props
         aria-label="Sonraki"
         onClick={() => canNext && setPage((x) => x + 1)}
         disabled={!canNext}
-        className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 h-10 w-10 items-center justify-center rounded-full border bg-white/90 shadow disabled:opacity-40"
+        className="
+          hidden md:flex
+          absolute right-1 lg:-right-4 top-1/2 -translate-y-1/2
+          h-10 w-10 items-center justify-center
+          rounded-full border bg-white/95 shadow-md
+          z-50
+          disabled:opacity-40
+        "
       >
         ›
       </button>
@@ -106,7 +129,7 @@ export default function NewestGridPager({ pageSize = 8, initialPage = 1 }: Props
         grid
       )}
 
-      {/* Sayfa numaraları (mobil + desktop) */}
+      {/* Sayfa numaraları */}
       {totalPages > 1 && (
         <nav className="mt-8 flex items-center justify-center gap-2" aria-label="Sayfalama">
           <PageBtn onClick={() => setPage((x) => Math.max(1, x - 1))} disabled={!canPrev}>

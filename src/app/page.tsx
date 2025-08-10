@@ -127,7 +127,7 @@ export default async function HomePage() {
       {featured.length > 0 && (
         <section className="py-16">
           <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">
-            Vitrin
+            Öne Çıkanlar
           </h2>
           <ProductMarquee products={featured} />
         </section>
