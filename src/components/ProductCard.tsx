@@ -96,7 +96,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
         {/* İndirim rozeti */}
         {hasDiscount && (
           <div className="absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-red-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
-            <Percent size={14} />
             {typeof product.discountPercent === 'number'
               ? `-%${Math.round(product.discountPercent)}`
               : product.saleLabel || 'İndirim'}
