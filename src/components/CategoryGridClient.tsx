@@ -19,29 +19,26 @@ export default function CategoryGridClient({ products }: { products: Product[] }
 
   return (
     <>
-      {/* Görünüm seçici */}
-      <div className="mb-4 sm:hidden flex items-center justify-between">
-        <span className="font-semibold text-lg">Görünüm</span>
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => {
-              setMobileCols("2");
-              try { localStorage.setItem("categoryMobileCols", "2"); } catch {}
-            }}
-            className={`p-2 rounded ${mobileCols === "2" ? "bg-gray-200 text-teal-700" : "text-gray-500"}`}
-          >
-            <LayoutGrid size={22} />
-          </button>
-          <button
-            onClick={() => {
-              setMobileCols("1");
-              try { localStorage.setItem("categoryMobileCols", "1"); } catch {}
-            }}
-            className={`p-2 rounded ${mobileCols === "1" ? "bg-gray-200 text-teal-700" : "text-gray-500"}`}
-          >
-            <List size={22} />
-          </button>
-        </div>
+      {/* Görünüm ikonları */}
+      <div className="mb-4 sm:hidden flex justify-end gap-4">
+        <button
+          onClick={() => {
+            setMobileCols("2");
+            try { localStorage.setItem("categoryMobileCols", "2"); } catch {}
+          }}
+          className={`p-2 rounded ${mobileCols === "2" ? "bg-gray-200 text-teal-700" : "text-gray-500"}`}
+        >
+          <LayoutGrid size={22} />
+        </button>
+        <button
+          onClick={() => {
+            setMobileCols("1");
+            try { localStorage.setItem("categoryMobileCols", "1"); } catch {}
+          }}
+          className={`p-2 rounded ${mobileCols === "1" ? "bg-gray-200 text-teal-700" : "text-gray-500"}`}
+        >
+          <List size={22} />
+        </button>
       </div>
 
       {/* Ürün Grid */}
