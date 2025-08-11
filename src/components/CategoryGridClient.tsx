@@ -3,13 +3,11 @@
 import { useEffect, useState } from "react";
 import type { Product } from "@/types";
 import ProductCard from "@/components/ProductCard";
+import { LayoutGrid, List } from "lucide-react";
 
-/** Mobilde tekli/ikili görünümü değiştirir; desktop düzeni sabit kalır */
 export default function CategoryGridClient({ products }: { products: Product[] }) {
-  // '1' = tekli, '2' = ikili (sadece <640px için anlamlı)
-  const [mobileCols, setMobileCols] = useState<"1" | "2">("1");
+  const [mobileCols, setMobileCols] = useState<"1" | "2">("2");
 
-  // localStorage'dan hatırla
   useEffect(() => {
     try {
       const saved = localStorage.getItem("categoryMobileCols");
@@ -17,40 +15,36 @@ export default function CategoryGridClient({ products }: { products: Product[] }
     } catch {}
   }, []);
 
-  // Grid sınıfları:
-  // - Mobilde toggle’a göre 1 veya 2 sütun
-  // - sm: 2 sütun (tablet)
-  // - lg: 3, xl: 4 sütun (desktop düzeni sabit)
   const mobileClass = mobileCols === "1" ? "grid-cols-1" : "grid-cols-2";
 
   return (
     <>
-      {/* Mobil görünüm seçici */}
-      <div className="mb-4 sm:hidden flex justify-end">
-        <div className="inline-flex rounded-full border bg-white shadow-sm overflow-hidden">
+      {/* Görünüm seçici */}
+      <div className="mb-4 sm:hidden flex items-center justify-between">
+        <span className="font-semibold text-lg">Görünüm</span>
+        <div className="flex items-center gap-4">
           <button
-            type="button"
-            onClick={() => {
-              setMobileCols("1");
-              try { localStorage.setItem("categoryMobileCols", "1"); } catch {}
-            }}
-            className={`px-3 py-1.5 text-sm font-medium ${mobileCols === "1" ? "bg-gray-900 text-white" : ""}`}
-          >
-            Tekli
-          </button>
-          <button
-            type="button"
             onClick={() => {
               setMobileCols("2");
               try { localStorage.setItem("categoryMobileCols", "2"); } catch {}
             }}
-            className={`px-3 py-1.5 text-sm font-medium ${mobileCols === "2" ? "bg-gray-900 text-white" : ""}`}
+            className={`p-2 rounded ${mobileCols === "2" ? "bg-gray-200 text-teal-700" : "text-gray-500"}`}
           >
-            İkili
+            <LayoutGrid size={22} />
+          </button>
+          <button
+            onClick={() => {
+              setMobileCols("1");
+              try { localStorage.setItem("categoryMobileCols", "1"); } catch {}
+            }}
+            className={`p-2 rounded ${mobileCols === "1" ? "bg-gray-200 text-teal-700" : "text-gray-500"}`}
+          >
+            <List size={22} />
           </button>
         </div>
       </div>
 
+      {/* Ürün Grid */}
       <div
         className={[
           "grid gap-x-6 gap-y-10",
