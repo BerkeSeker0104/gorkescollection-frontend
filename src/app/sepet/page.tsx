@@ -1,4 +1,3 @@
-// src/app/sepet/page.tsx
 'use client';
 
 import { useCart } from "@/context/CartContext";
@@ -6,22 +5,19 @@ import { getSettings } from "@/lib/api";
 import Image from "next/image";
 import Link from "next/link";
 import { X, Plus, Minus } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Setting } from "@/types";
-import Cookies from "js-cookie";
-import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext"; // 🔹 oturum bilgisi
 
 export default function CartPage() {
-  const router = useRouter();
   const { cart, addItem, decreaseItem, removeItem, loading: cartLoading } = useCart();
+  const { user } = useAuth();
+  const isAuthenticated = !!user;
 
   // Ödeme anahtarı (env)
   const checkoutEnabled = process.env.NEXT_PUBLIC_CHECKOUT_ENABLED === "true";
 
-  // Auth token (frontend çerezi)
-  const token = useMemo(() => Cookies.get("token") || "", []);
-
-  // Ayarlar için ayrı bir yükleme durumu
+  // Ayarlar
   const [settingsLoading, setSettingsLoading] = useState(true);
   const [settings, setSettings] = useState<{ fee: number; threshold: number }>({
     fee: 50,
@@ -52,21 +48,8 @@ export default function CartPage() {
   const subtotal =
     cart?.items.reduce((sum, item) => sum + item.price * item.quantity, 0) || 0;
 
-  // Ayarlar yüklenene kadar kargo ücretini hesaplama
   const shippingFee = settingsLoading ? 0 : subtotal >= settings.threshold ? 0 : settings.fee;
   const total = subtotal + shippingFee;
-
-  const handleCheckoutClick = () => {
-    if (!checkoutEnabled) return;
-
-    // Giriş kontrolü: token yoksa önce giriş sayfasına yönlendir.
-    if (!token) {
-      router.push("/giris?returnUrl=/odeme");
-      return;
-    }
-    // Token varsa ödeme sayfasına geç
-    router.push("/odeme");
-  };
 
   if (cartLoading) {
     return (
@@ -145,7 +128,9 @@ export default function CartPage() {
                         >
                           <Minus size={16} />
                         </button>
-                        <span className="px-4 py-1 text-gray-800 font-medium">{item.quantity}</span>
+                        <span className="px-4 py-1 text-gray-800 font-medium">
+                          {item.quantity}
+                        </span>
                         <button
                           type="button"
                           onClick={() => addItem(item.productId)}
@@ -185,7 +170,9 @@ export default function CartPage() {
             <dl className="mt-6 space-y-4">
               <div className="flex items-center justify-between">
                 <dt className="text-sm text-gray-600">Ara Toplam</dt>
-                <dd className="text-sm font-medium text-gray-900">{subtotal.toFixed(2)} TL</dd>
+                <dd className="text-sm font-medium text-gray-900">
+                  {subtotal.toFixed(2)} TL
+                </dd>
               </div>
 
               <div className="flex items-center justify-between border-t border-gray-200 pt-4">
@@ -204,7 +191,8 @@ export default function CartPage() {
               {!settingsLoading && subtotal > 0 && subtotal < settings.threshold && (
                 <div className="text-center text-xs text-green-600 pt-2">
                   Ücretsiz kargo için sepetinize{" "}
-                  <strong>{(settings.threshold - subtotal).toFixed(2)} TL</strong> daha ekleyin!
+                  <strong>{(settings.threshold - subtotal).toFixed(2)} TL</strong>{" "}
+                  daha ekleyin!
                 </div>
               )}
 
@@ -216,16 +204,14 @@ export default function CartPage() {
               </div>
             </dl>
 
-            {/* Satın Al */}
             <div className="mt-6">
               {checkoutEnabled ? (
-                <button
-                  type="button"
-                  onClick={handleCheckoutClick}
+                <Link
+                  href="/odeme"
                   className="w-full block text-center rounded-md border border-transparent bg-gray-900 px-4 py-3 text-base font-medium text-white shadow-sm hover:bg-gray-700"
                 >
-                  {token ? "Satın Al" : "Giriş Yap ve Satın Al"}
-                </button>
+                  {isAuthenticated ? "Ödemeye Geç" : "Misafir Olarak Öde"}
+                </Link>
               ) : (
                 <button
                   type="button"
@@ -237,20 +223,12 @@ export default function CartPage() {
                   Satın Al (Çok Yakında)
                 </button>
               )}
-
               {!checkoutEnabled && (
                 <p className="mt-2 text-center text-xs text-gray-500">
                   Ödeme sistemi başvuru sürecinde. Çok yakında aktif olacak.
                 </p>
               )}
             </div>
-
-            {/* İpucu: Token yoksa bilgi ver */}
-            {checkoutEnabled && !token && (
-              <p className="mt-3 text-center text-xs text-orange-600">
-                Ödeme adımına geçebilmek için lütfen giriş yapın.
-              </p>
-            )}
           </section>
         </div>
       </div>
