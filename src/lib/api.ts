@@ -27,47 +27,49 @@ const getToken = () => Cookies.get('token');
 
 
 export const initiatePaytrPayment = async (
-  addressData: ShippingAddress & { email?: string }
+  addressData: ShippingAddress,
+  email?: string // 🔸 misafir için e-posta
 ): Promise<string | null> => {
-  const token = getToken();
-
-  // Login değilse token yok → misafir ödeme
-  // Misafirde backend Authorization header göndermeyeceğiz.
-  const isGuest = !token;
+  const token = getToken(); // loginli ise bearer göndereceğiz (opsiyonel)
 
   try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers.Authorization = `Bearer ${token}`;
+
+    const body: any = {
+      // Backend CreateOrderDto flat alanlarla da uyumlu
+      fullName: addressData.fullName,
+      phoneNumber: addressData.phoneNumber,
+      address: addressData.address1,
+      city: addressData.city,
+      district: addressData.district,
+      postalCode: addressData.postalCode,
+    };
+    if (!token && email) {
+      body.email = email; // 🔸 misafir için zorunlu
+    }
+
     const response = await fetch(`${API_URL}/api/payments/initiate-payment`, {
       method: 'POST',
-      headers: {
-        ...(isGuest ? {} : { Authorization: `Bearer ${token}` }),
-        'Content-Type': 'application/json',
-      },
-      // Backend CreateOrderDto ile birebir: flat alanlar + (misafirse) email
-      body: JSON.stringify({
-        fullName: addressData.fullName,
-        phoneNumber: addressData.phoneNumber,
-        address: addressData.address1,
-        city: addressData.city,
-        district: addressData.district,
-        postalCode: addressData.postalCode,
-        country: addressData.country,
-        ...(isGuest ? { email: addressData.email } : {}), // 🔹 sadece misafir için ekle
-      }),
+      headers,
+      // ÇOK ÖNEMLİ: misafir sepeti server-cookie ile tutuluyor.
+      // buyerId çerezinin request'e eklenmesi için:
+      credentials: 'include', // 🔸 ekledik
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
-      // Backend { message } döndürüyor
-      let message = 'Ödeme başlatılamadı.';
+      let msg = 'Ödeme başlatılamadı.';
       try {
-        const errorResult = await response.json();
-        if (errorResult?.message) message = errorResult.message;
+        const err = await response.json();
+        msg = err?.message || msg;
       } catch {}
-      console.error('PayTR ödeme başlatma başarısız:', message);
-      throw new Error(message);
+      console.error('PayTR ödeme başlatma başarısız:', msg);
+      throw new Error(msg);
     }
 
     const result = await response.json();
-    return result.token ?? null;
+    return result.token as string;
   } catch (error) {
     console.error('PayTR ödeme başlatma sırasında ağ hatası:', error);
     throw error;
