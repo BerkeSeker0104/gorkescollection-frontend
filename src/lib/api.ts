@@ -25,6 +25,54 @@ const getToken = () => Cookies.get('token');
 /* HERKESE AÇIK FONKSİYONLAR                                                */
 /* ------------------------------------------------------------------------- */
 
+
+export const initiatePaytrPayment = async (
+  addressData: ShippingAddress
+): Promise<string | null> => {
+  const token = getToken();
+  if (!token) {
+    console.error('Ödeme başlatmak için token bulunamadı.');
+    return null;
+  }
+  
+  try {
+    // Backend'de oluşturduğumuz yeni endpoint'i çağırıyoruz
+    const response = await fetch(`${API_URL}/api/payments/initiate-payment`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      // Backend'deki CreateOrderDto ile birebir aynı yapıyı gönderiyoruz
+      body: JSON.stringify({
+        fullName: addressData.fullName,
+        phoneNumber: addressData.phoneNumber,
+        address: addressData.address1, // address1'i address olarak eşliyoruz
+        city: addressData.city,
+        district: addressData.district,
+        postalCode: addressData.postalCode,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorResult = await response.json();
+      console.error('PayTR ödeme başlatma başarısız:', errorResult.message);
+      // Hata mesajını kullanıcıya göstermek için fırlatabiliriz
+      throw new Error(errorResult.message || 'Ödeme başlatılamadı.');
+    }
+    
+    const result = await response.json();
+    // Backend'den { token: "..." } şeklinde bir cevap gelecek, biz sadece token'ı dönüyoruz.
+    return result.token;
+
+  } catch (error) {
+    console.error('PayTR ödeme başlatma sırasında ağ hatası:', error);
+    // Hatanın çağrıldığı yere iletilmesi
+    throw error;
+  }
+};
+
+
 // api.ts
 export const getProducts = async (
   sortBy?: string,
