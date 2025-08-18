@@ -27,47 +27,49 @@ const getToken = () => Cookies.get('token');
 
 
 export const initiatePaytrPayment = async (
-  addressData: ShippingAddress
+  addressData: ShippingAddress & { email?: string }
 ): Promise<string | null> => {
   const token = getToken();
-  if (!token) {
-    console.error('Ödeme başlatmak için token bulunamadı.');
-    return null;
-  }
-  
+
+  // Login değilse token yok → misafir ödeme
+  // Misafirde backend Authorization header göndermeyeceğiz.
+  const isGuest = !token;
+
   try {
-    // Backend'de oluşturduğumuz yeni endpoint'i çağırıyoruz
     const response = await fetch(`${API_URL}/api/payments/initiate-payment`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...(isGuest ? {} : { Authorization: `Bearer ${token}` }),
         'Content-Type': 'application/json',
       },
-      // Backend'deki CreateOrderDto ile birebir aynı yapıyı gönderiyoruz
+      // Backend CreateOrderDto ile birebir: flat alanlar + (misafirse) email
       body: JSON.stringify({
         fullName: addressData.fullName,
         phoneNumber: addressData.phoneNumber,
-        address: addressData.address1, // address1'i address olarak eşliyoruz
+        address: addressData.address1,
         city: addressData.city,
         district: addressData.district,
         postalCode: addressData.postalCode,
+        country: addressData.country,
+        ...(isGuest ? { email: addressData.email } : {}), // 🔹 sadece misafir için ekle
       }),
     });
 
     if (!response.ok) {
-      const errorResult = await response.json();
-      console.error('PayTR ödeme başlatma başarısız:', errorResult.message);
-      // Hata mesajını kullanıcıya göstermek için fırlatabiliriz
-      throw new Error(errorResult.message || 'Ödeme başlatılamadı.');
+      // Backend { message } döndürüyor
+      let message = 'Ödeme başlatılamadı.';
+      try {
+        const errorResult = await response.json();
+        if (errorResult?.message) message = errorResult.message;
+      } catch {}
+      console.error('PayTR ödeme başlatma başarısız:', message);
+      throw new Error(message);
     }
-    
-    const result = await response.json();
-    // Backend'den { token: "..." } şeklinde bir cevap gelecek, biz sadece token'ı dönüyoruz.
-    return result.token;
 
+    const result = await response.json();
+    return result.token ?? null;
   } catch (error) {
     console.error('PayTR ödeme başlatma sırasında ağ hatası:', error);
-    // Hatanın çağrıldığı yere iletilmesi
     throw error;
   }
 };
