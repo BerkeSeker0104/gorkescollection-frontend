@@ -59,9 +59,20 @@ export default function CheckoutPage() {
     }, []);
 
     const handleSelectAddress = (address: Address) => {
-        reset(address);
-        setSelectedAddressId(address.id);
-    };
+    // reset fonksiyonu alan adlarının birebir eşleşmesini bekler.
+    // Adres tipindeki "address1" alanını formdaki "address1" ile eşleştiriyoruz.
+    reset({
+        fullName: address.fullName,
+        phoneNumber: address.phoneNumber,
+        address1: address.address1, // Bu eşleştirme önemli
+        address2: address.address2 || "",
+        city: address.city,
+        district: address.district,
+        postalCode: address.postalCode,
+        country: address.country || "Türkiye",
+    });
+    setSelectedAddressId(address.id);
+};
 
     // --- GÜNCELLENDİ: onSubmit fonksiyonu artık PayTR token'ı alıyor ---
     const onSubmit = async (data: ShippingAddress) => {
