@@ -12,6 +12,7 @@ import clsx from "clsx";
 import toast from "react-hot-toast";
 // 🔸 login kontrolü için
 import { useAuth } from "@/context/AuthContext";
+import Script from "next/script";
 
 const addressSchema = z.object({
   fullName: z.string().min(3, "Ad Soyad en az 3 karakter olmalıdır."),
@@ -106,25 +107,49 @@ export default function CheckoutPage() {
   }
 
   if (iframeToken) {
-    return (
-      <div className="bg-gray-50 pt-40">
-        <div className="container mx-auto px-4 py-16">
-          <h1 className="text-2xl font-bold text-center mb-8">Güvenli Ödeme Ekranı</h1>
-          <div className="max-w-2xl mx-auto bg-white p-4 rounded-lg shadow-lg">
-            <script src="https://www.paytr.com/js/iframeResizer.min.js"></script>
-            <iframe
-              src={`https://www.paytr.com/odeme/guvenli/${iframeToken}`}
-              id="paytriframe"
-              frameBorder="0"
-              scrolling="no"
-              style={{ width: "100%" }}
-            ></iframe>
-            <script dangerouslySetInnerHTML={{ __html: "iFrameResize({}, '#paytriframe');" }} />
-          </div>
+  return (
+    <div className="bg-gray-50 pt-40">
+      {/* iFrameResizer scriptini Next.js yolu ile yükle */}
+      <Script
+        src="https://www.paytr.com/js/iframeResizer.min.js"
+        strategy="afterInteractive"
+      />
+      <div className="container mx-auto px-4 py-16">
+        <h1 className="text-2xl font-bold text-center mb-8">Güvenli Ödeme Ekranı</h1>
+        <div className="max-w-2xl mx-auto bg-white p-4 rounded-lg shadow-lg">
+          <iframe
+            id="paytriframe"
+            src={`https://www.paytr.com/odeme/guvenli/${iframeToken}`}
+            frameBorder={0}
+            scrolling="no"
+            style={{ width: "100%", height: "900px", display: "block" }} // fallback yükseklik
+            allow="payment *"
+          />
         </div>
       </div>
-    );
-  }
+
+      {/* iFrameResizer'ı token geldiğinde çalıştır */}
+      <Script id="paytr-iframe-init" strategy="afterInteractive">
+        {`
+          (function init() {
+            if (window.iFrameResize) {
+              window.iFrameResize({}, '#paytriframe');
+            } else {
+              // script gecikirse kısa bir retry
+              var t = setInterval(function(){
+                if (window.iFrameResize) {
+                  clearInterval(t);
+                  window.iFrameResize({}, '#paytriframe');
+                }
+              }, 300);
+              setTimeout(function(){ clearInterval(t); }, 5000);
+            }
+          })();
+        `}
+      </Script>
+    </div>
+  );
+}
 
   return (
     <div className="bg-gray-50 pt-40">
