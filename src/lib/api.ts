@@ -26,55 +26,26 @@ const getToken = () => Cookies.get('token');
 /* ------------------------------------------------------------------------- */
 
 
-export const initiatePaytrPayment = async (
-  addressData: ShippingAddress,
-  email?: string // 🔸 misafir için e-posta
-): Promise<string | null> => {
-  const token = getToken(); // loginli ise bearer göndereceğiz (opsiyonel)
+export async function initiatePaytrPayment(
+  address: ShippingAddress,
+  guestEmail?: string,
+  preferredCarrier?: string
+) {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/checkout/paytr`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ address, guestEmail, preferredCarrier }),
+  });
 
-  try {
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (token) headers.Authorization = `Bearer ${token}`;
-
-    const body: any = {
-      // Backend CreateOrderDto flat alanlarla da uyumlu
-      fullName: addressData.fullName,
-      phoneNumber: addressData.phoneNumber,
-      address: addressData.address1,
-      city: addressData.city,
-      district: addressData.district,
-      postalCode: addressData.postalCode,
-    };
-    if (!token && email) {
-      body.email = email; // 🔸 misafir için zorunlu
-    }
-
-    const response = await fetch(`${API_URL}/api/payments/initiate-payment`, {
-      method: 'POST',
-      headers,
-      // ÇOK ÖNEMLİ: misafir sepeti server-cookie ile tutuluyor.
-      // buyerId çerezinin request'e eklenmesi için:
-      credentials: 'include', // 🔸 ekledik
-      body: JSON.stringify(body),
-    });
-
-    if (!response.ok) {
-      let msg = 'Ödeme başlatılamadı.';
-      try {
-        const err = await response.json();
-        msg = err?.message || msg;
-      } catch {}
-      console.error('PayTR ödeme başlatma başarısız:', msg);
-      throw new Error(msg);
-    }
-
-    const result = await response.json();
-    return result.token as string;
-  } catch (error) {
-    console.error('PayTR ödeme başlatma sırasında ağ hatası:', error);
-    throw error;
+  if (!res.ok) {
+    throw new Error("Ödeme başlatılamadı");
   }
-};
+
+  const data = await res.json();
+  // Hem iframeToken hem token isimlerini destekle
+  return (data?.iframeToken ?? data?.token) as string | undefined;
+}
 
 
 // api.ts
@@ -421,30 +392,29 @@ export const deleteProduct = async (productId: number): Promise<boolean> => {
 };
 
 export const getCloudinarySignature = async (): Promise<any | null> => {
-  const token = getToken();
-  if (!token) {
-    console.error('Cloudinary imzası için token bulunamadı.');
-    return null;
-  }
+  const token = getToken(); // opsiyonel
   try {
     const response = await fetch(`${API_URL}/api/admin/upload-signature`, {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${token}` },
+      method: 'POST',                            // << GET değil POST olmalı
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      // İsterseniz imzada klasör vs. gönderebilirsiniz:
+      // body: JSON.stringify({ folder: 'products' })
     });
+
     if (!response.ok) {
-      console.error(
-        'Cloudinary imzası alınamadı. Sunucu cevabı:',
-        response.status,
-        await response.text()
-      );
+      console.error('Cloudinary imzası alınamadı:', response.status, await response.text());
       return null;
     }
     return response.json();
   } catch (error) {
-    console.error('Cloudinary imzası alınırken bir ağ hatası oluştu:', error);
+    console.error('Cloudinary imzası alınırken ağ hatası:', error);
     return null;
   }
 };
+
 
 export const getAllOrders = async (): Promise<Order[]> => {
   const token = getToken();
