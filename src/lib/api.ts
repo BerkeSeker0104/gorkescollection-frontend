@@ -31,24 +31,29 @@ export async function initiatePaytrPayment(
   guestEmail?: string,
   preferredCarrier?: string
 ) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/payments/initiate-payment`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify({
-      // ❗️Doğru alan adları
-      shippingAddress: address,
-      email: guestEmail,            // misafir ise zorunlu
-      preferredCarrier,             // opsiyonel
-    }),
-  });
+  const token = Cookies.get("token"); // giriş yaptıysan burada olur
+
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/payments/initiate-payment`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}), // 🔑 ekle
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        shippingAddress: address,
+        email: guestEmail,          // misafir ise zorunlu
+        preferredCarrier,
+      }),
+    }
+  );
 
   if (!res.ok) {
-    // backend { message } döndürüyor
     const t = await res.text().catch(() => "");
     throw new Error(t || "Ödeme başlatılamadı");
   }
-
   const data = await res.json();
   return (data?.iframeToken ?? data?.token) as string | undefined;
 }
