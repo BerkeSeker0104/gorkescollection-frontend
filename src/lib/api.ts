@@ -766,3 +766,35 @@ export const getFeaturedProducts = async (take = 12): Promise<Product[]> => {
   }
 };
 
+// --- Navlungo: siparişten gönderi oluştur ---
+export type CreateShipmentDto = {
+  desi?: number;
+  carrierId?: number; // varsayılan: 9
+  postType?: number;  // varsayılan: 1
+  note?: string;
+};
+
+export const createShipment = async (
+  orderId: number,
+  dto: CreateShipmentDto
+): Promise<{ postNumber?: string; trackingUrl?: string; barcodeUrl?: string } | null> => {
+  const token = getToken();
+  if (!token) return null;
+  try {
+    const res = await fetch(`${API_URL}/api/admin/orders/${orderId}/create-shipment`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(dto),
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch (err) {
+    console.error('Navlungo gönderi oluşturulurken ağ/servis hatası:', err);
+    return null;
+  }
+};
+
