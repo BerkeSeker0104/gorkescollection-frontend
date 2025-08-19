@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 type TrackingEvent = {
@@ -24,7 +24,11 @@ type TrackingResult = {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export default function CargoTrackingPage() {
+// Bu sayfanın SSG ile önceden oluşturulmasını engelle
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+function TrackingClient() {
   const sp = useSearchParams();
   const initialNo = sp.get('no') || '';
 
@@ -73,7 +77,7 @@ export default function CargoTrackingPage() {
 
   const orderedEvents = useMemo(() => {
     if (!data?.events) return [];
-    // En eskiden → en yeniye sıralı bekleniyor; yine de garantiye alalım:
+    // En eskiden → en yeniye sırala
     return [...data.events].sort((a, b) => {
       const ta = a.timeUtc ? new Date(a.timeUtc).getTime() : 0;
       const tb = b.timeUtc ? new Date(b.timeUtc).getTime() : 0;
@@ -194,5 +198,21 @@ export default function CargoTrackingPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense
+      fallback={
+        <div className="bg-gray-50 min-h-screen pt-36 pb-16">
+          <div className="container mx-auto px-4 max-w-3xl">
+            <div className="bg-white p-6 rounded-lg shadow-sm">Yükleniyor…</div>
+          </div>
+        </div>
+      }
+    >
+      <TrackingClient />
+    </Suspense>
   );
 }
