@@ -52,12 +52,16 @@ function TrackingClient() {
       setData(null);
 
       const res = await fetch(`${API_URL}/api/public/tracking/${encodeURIComponent(q)}`, {
-        cache: 'no-store',
-      });
+  cache: 'no-store',
+  credentials: 'omit',   // 👈 public endpoint: çerez göndermeyi kapat
+  // mode: 'cors',       // (opsiyonel) tarayıcı default zaten 'cors'
+  headers: { 'Accept': 'application/json' }, // (opsiyonel) netlik için
+});
       if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || 'Takip sorgulanamadı.');
-      }
+  const text = await res.text();
+  console.error('tracking failed', res.status, res.headers.get('access-control-allow-origin'));
+  throw new Error(text || 'Takip sorgulanamadı.');
+}
       const payload = (await res.json()) as TrackingResult;
       payload.events = Array.isArray(payload.events) ? payload.events : [];
       setData(payload);
