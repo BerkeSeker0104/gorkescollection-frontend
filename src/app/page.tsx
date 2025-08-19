@@ -13,6 +13,8 @@ type FeaturedCategory = Category & {
   description: string;
 };
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 export default async function HomePage() {
   // 1) Öne çıkanlar (marquee)  2) En yeniler (alttaki grid)  3) Kategoriler
   const [featured, newestAll, allCategories] = await Promise.all([
