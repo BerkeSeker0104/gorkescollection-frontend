@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { Order, ShipOrderDto } from "@/types";
-import { getOrderById, shipOrder } from "@/lib/api";
+import { getOrderById, shipOrder, createShipment, getCarriers } from "@/lib/api";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useParams, useRouter } from "next/navigation";
-import { createShipment } from "@/lib/api";
 
 const shippingSchema = z.object({
   cargoCompany: z.string().min(2, "Kargo firması adı gereklidir."),
@@ -17,13 +16,24 @@ const shippingSchema = z.object({
 const inputStyle =
   "mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-sm";
 
+// (Şimdilik sabit) Hizmet tipleri — istersen bunu da API’den dinamikleştiririz.
+const POST_TYPES = [
+  { id: 1, name: "Standart Teslimat" },
+  { id: 2, name: "Hızlı / Ekspres" },
+  { id: 3, name: "Randevulu / Özel" },
+];
+
 export default function AdminOrderDetailPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Dinamik carrier listesi
+  const [carriers, setCarriers] = useState<{ id: number; name: string }[]>([]);
+  const [carriersLoading, setCarriersLoading] = useState(true);
+
   const router = useRouter();
-  const { id } = useParams<{ id: string }>(); // <-- params yerine useParams
-  const orderId = id ? parseInt(id, 10) : NaN; // güvenli parse
+  const { id } = useParams<{ id: string }>();
+  const orderId = id ? parseInt(id, 10) : NaN;
 
   const {
     register,
@@ -35,7 +45,7 @@ export default function AdminOrderDetailPage() {
 
   // --- Navlungo (Yeni) ---
   const [desi, setDesi] = useState<number | "">("");
-  const [carrierId, setCarrierId] = useState<number | "">(9);
+  const [carrierId, setCarrierId] = useState<number | "">("");
   const [postType, setPostType] = useState<number | "">(1);
   const [note, setNote] = useState<string>("");
   const [isCreatingShipment, setIsCreatingShipment] = useState(false);
@@ -47,17 +57,30 @@ export default function AdminOrderDetailPage() {
   // ------------------------
 
   useEffect(() => {
-    // id henüz gelmemişse veya geçersizse istek atma
     if (!id || Number.isNaN(orderId)) return;
 
-    const fetchOrder = async () => {
+    const run = async () => {
       setLoading(true);
-      const fetchedOrder = await getOrderById(orderId);
+
+      // Siparişi ve taşıyıcıları paralel çek
+      const [fetchedOrder, fetchedCarriers] = await Promise.all([
+        getOrderById(orderId),
+        getCarriers(), // backend proxy: /api/admin/shipping/carriers
+      ]);
+
       setOrder(fetchedOrder);
+      setCarriers(fetchedCarriers ?? []);
+      setCarriersLoading(false);
+
+      // Varsayılan carrier: listede ilk gelen (yoksa boş bırak)
+      if ((fetchedCarriers ?? []).length > 0) {
+        setCarrierId((fetchedCarriers![0].id as number) ?? "");
+      }
+
       setLoading(false);
     };
 
-    fetchOrder();
+    run();
   }, [id, orderId]);
 
   const handleShipOrder = async (data: ShipOrderDto) => {
@@ -92,7 +115,7 @@ export default function AdminOrderDetailPage() {
       return;
     }
     setCreatedInfo(res);
-    // Sipariş detayını tazelemek istersen:
+    // Gerekirse siparişi yenile:
     // const updated = await getOrderById(orderId);
     // setOrder(updated);
   };
@@ -240,34 +263,49 @@ export default function AdminOrderDetailPage() {
                       placeholder="Örn: 1.2"
                     />
                   </div>
+
+                  {/* Dinamik: Carrier listesi */}
                   <div>
-                    <label className="block text-sm mb-1">CarrierId</label>
-                    <input
-                      type="number"
-                      value={carrierId}
+                    <label className="block text-sm mb-1">Kargo Firması</label>
+                    {carriersLoading ? (
+                      <div className="text-sm text-gray-500">Kargo firmaları yükleniyor…</div>
+                    ) : carriers.length === 0 ? (
+                      <div className="text-sm text-red-600">Kargo firması bulunamadı.</div>
+                    ) : (
+                      <select
+                        value={carrierId === "" ? "" : Number(carrierId)}
+                        onChange={(e) =>
+                          setCarrierId(e.target.value === "" ? "" : Number(e.target.value))
+                        }
+                        className="w-full border rounded-md px-3 py-2"
+                      >
+                        {carriers.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+
+                  {/* Sabit: Hizmet tipi */}
+                  <div>
+                    <label className="block text-sm mb-1">Hizmet Tipi</label>
+                    <select
+                      value={postType === "" ? "" : Number(postType)}
                       onChange={(e) =>
-                        setCarrierId(
-                          e.target.value === "" ? "" : Number(e.target.value)
-                        )
+                        setPostType(e.target.value === "" ? "" : Number(e.target.value))
                       }
                       className="w-full border rounded-md px-3 py-2"
-                      placeholder="Örn: 9"
-                    />
+                    >
+                      {POST_TYPES.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  <div>
-                    <label className="block text-sm mb-1">PostType</label>
-                    <input
-                      type="number"
-                      value={postType}
-                      onChange={(e) =>
-                        setPostType(
-                          e.target.value === "" ? "" : Number(e.target.value)
-                        )
-                      }
-                      className="w-full border rounded-md px-3 py-2"
-                      placeholder="Örn: 1"
-                    />
-                  </div>
+
                   <div className="col-span-2">
                     <label className="block text-sm mb-1">Not</label>
                     <input
@@ -298,11 +336,7 @@ export default function AdminOrderDetailPage() {
                     {createdInfo.trackingUrl && (
                       <p>
                         <b>Takip:</b>{" "}
-                        <a
-                          className="underline"
-                          href={createdInfo.trackingUrl}
-                          target="_blank"
-                        >
+                        <a className="underline" href={createdInfo.trackingUrl} target="_blank">
                           Link
                         </a>
                       </p>
@@ -310,11 +344,7 @@ export default function AdminOrderDetailPage() {
                     {createdInfo.barcodeUrl && (
                       <p>
                         <b>Barkod:</b>{" "}
-                        <a
-                          className="underline"
-                          href={createdInfo.barcodeUrl}
-                          target="_blank"
-                        >
+                        <a className="underline" href={createdInfo.barcodeUrl} target="_blank">
                           PDF
                         </a>
                       </p>

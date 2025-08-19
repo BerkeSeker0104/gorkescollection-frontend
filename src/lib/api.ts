@@ -766,6 +766,24 @@ export const getFeaturedProducts = async (take = 12): Promise<Product[]> => {
   }
 };
 
+// --- Dinamik carrier listesi ---
+export type CarrierMini = { id: number; name: string };
+
+export const getCarriers = async (): Promise<CarrierMini[]> => {
+  const token = getToken();
+  if (!token) return [];
+  try {
+    const res = await fetch(`${API_URL}/api/admin/shipping/carriers`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+};
+
 // --- Navlungo: siparişten gönderi oluştur ---
 export type CreateShipmentDto = {
   desi?: number;
