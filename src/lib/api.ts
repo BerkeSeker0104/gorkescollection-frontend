@@ -35,15 +35,21 @@ export async function initiatePaytrPayment(
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body: JSON.stringify({ address, guestEmail, preferredCarrier }),
+    body: JSON.stringify({
+      // ❗️Doğru alan adları
+      shippingAddress: address,
+      email: guestEmail,            // misafir ise zorunlu
+      preferredCarrier,             // opsiyonel
+    }),
   });
 
   if (!res.ok) {
-    throw new Error("Ödeme başlatılamadı");
+    // backend { message } döndürüyor
+    const t = await res.text().catch(() => "");
+    throw new Error(t || "Ödeme başlatılamadı");
   }
 
   const data = await res.json();
-  // Hem iframeToken hem token isimlerini destekle
   return (data?.iframeToken ?? data?.token) as string | undefined;
 }
 
