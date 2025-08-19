@@ -31,7 +31,7 @@ export async function initiatePaytrPayment(
   guestEmail?: string,
   preferredCarrier?: string
 ) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/checkout/paytr`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/payments/initiate-payment`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",

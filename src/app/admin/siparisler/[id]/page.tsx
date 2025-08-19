@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Order, ShipOrderDto } from "@/types";
-import { getOrderById, shipOrder, createShipment, getCarriers } from "@/lib/api";
+import { getOrderById, shipOrder } from "@/lib/api";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -16,20 +16,9 @@ const shippingSchema = z.object({
 const inputStyle =
   "mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 text-sm";
 
-// (Şimdilik sabit) Hizmet tipleri — istersen bunu da API’den dinamikleştiririz.
-const POST_TYPES = [
-  { id: 1, name: "Standart Teslimat" },
-  { id: 2, name: "Hızlı / Ekspres" },
-  { id: 3, name: "Randevulu / Özel" },
-];
-
 export default function AdminOrderDetailPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // Dinamik carrier listesi
-  const [carriers, setCarriers] = useState<{ id: number; name: string }[]>([]);
-  const [carriersLoading, setCarriersLoading] = useState(true);
 
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
@@ -43,40 +32,13 @@ export default function AdminOrderDetailPage() {
     resolver: zodResolver(shippingSchema),
   });
 
-  // --- Navlungo (Yeni) ---
-  const [desi, setDesi] = useState<number | "">("");
-  const [carrierId, setCarrierId] = useState<number | "">("");
-  const [postType, setPostType] = useState<number | "">(1);
-  const [note, setNote] = useState<string>("");
-  const [isCreatingShipment, setIsCreatingShipment] = useState(false);
-  const [createdInfo, setCreatedInfo] = useState<{
-    postNumber?: string;
-    trackingUrl?: string;
-    barcodeUrl?: string;
-  } | null>(null);
-  // ------------------------
-
   useEffect(() => {
     if (!id || Number.isNaN(orderId)) return;
 
     const run = async () => {
       setLoading(true);
-
-      // Siparişi ve taşıyıcıları paralel çek
-      const [fetchedOrder, fetchedCarriers] = await Promise.all([
-        getOrderById(orderId),
-        getCarriers(), // backend proxy: /api/admin/shipping/carriers
-      ]);
-
+      const fetchedOrder = await getOrderById(orderId);
       setOrder(fetchedOrder);
-      setCarriers(fetchedCarriers ?? []);
-      setCarriersLoading(false);
-
-      // Varsayılan carrier: listede ilk gelen (yoksa boş bırak)
-      if ((fetchedCarriers ?? []).length > 0) {
-        setCarrierId((fetchedCarriers![0].id as number) ?? "");
-      }
-
       setLoading(false);
     };
 
@@ -95,35 +57,16 @@ export default function AdminOrderDetailPage() {
     }
   };
 
-  // --- Navlungo (Yeni) ---
-  const handleCreateShipment = async () => {
-    if (Number.isNaN(orderId)) return;
-    setIsCreatingShipment(true);
-    setCreatedInfo(null);
-
-    const payload: any = {};
-    if (desi !== "") payload.desi = Number(desi);
-    if (carrierId !== "") payload.carrierId = Number(carrierId);
-    if (postType !== "") payload.postType = Number(postType);
-    if (note.trim()) payload.note = note.trim();
-
-    const res = await createShipment(orderId, payload);
-    setIsCreatingShipment(false);
-
-    if (!res) {
-      alert("Navlungo gönderi oluşturma başarısız.");
-      return;
-    }
-    setCreatedInfo(res);
-    // Gerekirse siparişi yenile:
-    // const updated = await getOrderById(orderId);
-    // setOrder(updated);
-  };
-  // ------------------------
-
   if (!id || Number.isNaN(orderId)) return <p>Geçersiz sipariş numarası.</p>;
   if (loading) return <p>Sipariş detayları yükleniyor...</p>;
   if (!order) return <p>Sipariş bulunamadı.</p>;
+
+  // Backend'de eklediğimiz alanı types güvenli okumak için:
+  const requestedCarrier: string | undefined = (order as any)?.requestedCarrier;
+
+  const trackingUrl = order.trackingNumber
+    ? `/kargo-takip?no=${encodeURIComponent(order.trackingNumber)}`
+    : null;
 
   return (
     <div className="container mx-auto px-6 py-8">
@@ -151,20 +94,61 @@ export default function AdminOrderDetailPage() {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-sm">
+          <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
             <h3 className="font-semibold text-lg mb-4">Teslimat Adresi</h3>
-            <p>{order.shippingAddress.fullName}</p>
+            <p className="font-medium">{order.shippingAddress.fullName}</p>
             <p>{order.shippingAddress.address1}</p>
             <p>
               {order.shippingAddress.district}, {order.shippingAddress.city}{" "}
               {order.shippingAddress.postalCode}
             </p>
+            <p className="text-sm text-gray-600 mt-2">
+              Telefon: {order.shippingAddress.phoneNumber || "-"}
+            </p>
+          </div>
+
+          {/* Müşterinin seçtiği kargo */}
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <h3 className="font-semibold text-lg mb-2">Müşterinin Seçtiği Kargo</h3>
+            <p className="text-sm text-gray-700">
+              {requestedCarrier || "— (bilgi yok)"}
+            </p>
           </div>
         </div>
 
-        {/* Sağ: Kargolama */}
+        {/* Sağ: Kargolama ve Takip */}
         <div className="space-y-6">
-          {/* Mevcut: Manuel kargolama formu */}
+          {/* Takip kartı */}
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <h3 className="font-semibold text-lg mb-4">Kargo Takibi</h3>
+            {order.orderStatus === "Shipped" && order.trackingNumber ? (
+              <div className="space-y-2">
+                <div className="text-sm">
+                  <span className="text-gray-600">Kargo Firması: </span>
+                  <span className="font-medium">{order.cargoCompany || "-"}</span>
+                </div>
+                <div className="text-sm">
+                  <span className="text-gray-600">Takip No: </span>
+                  <span className="font-medium">{order.trackingNumber}</span>
+                </div>
+                {trackingUrl && (
+                  <a
+                    href={trackingUrl}
+                    target="_blank"
+                    className="inline-flex items-center justify-center rounded-md bg-gray-900 text-white px-4 py-2 text-sm font-medium hover:bg-gray-800"
+                  >
+                    Kargo Takibini Aç
+                  </a>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-600">
+                Bu sipariş henüz kargoya verilmemiş.
+              </p>
+            )}
+          </div>
+
+          {/* Manuel kargolama formu */}
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="font-semibold text-lg mb-4">Siparişi Kargola</h3>
 
@@ -179,11 +163,14 @@ export default function AdminOrderDetailPage() {
             ) : (
               <form onSubmit={handleSubmit(handleShipOrder)} className="space-y-4">
                 <div>
-                  <label htmlFor="cargoCompany">Kargo Firması</label>
+                  <label htmlFor="cargoCompany" className="text-sm font-medium">
+                    Kargo Firması
+                  </label>
                   <input
                     type="text"
                     {...register("cargoCompany")}
                     className={inputStyle}
+                    placeholder={requestedCarrier || "Aras / PTT / Hepsijet / Sürat"}
                   />
                   {errors.cargoCompany && (
                     <p className="text-xs text-red-500">
@@ -193,7 +180,9 @@ export default function AdminOrderDetailPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="trackingNumber">Kargo Takip Numarası</label>
+                  <label htmlFor="trackingNumber" className="text-sm font-medium">
+                    Kargo Takip Numarası
+                  </label>
                   <input
                     type="text"
                     {...register("trackingNumber")}
@@ -214,144 +203,6 @@ export default function AdminOrderDetailPage() {
                   {isSubmitting ? "Kaydediliyor..." : "Kargoya Verildi Olarak İşaretle"}
                 </button>
               </form>
-            )}
-          </div>
-
-          {/* Yeni: Navlungo ile Gönderi Oluştur */}
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="font-semibold text-lg mb-4">
-              Navlungo ile Gönderi Oluştur (Test)
-            </h3>
-
-            {order.orderStatus === "Shipped" && order.trackingNumber ? (
-              <div className="space-y-2">
-                <p className="text-green-600 font-medium">
-                  Bu sipariş zaten kargolanmış.
-                </p>
-                {createdInfo?.trackingUrl && (
-                  <a
-                    href={createdInfo.trackingUrl}
-                    target="_blank"
-                    className="underline text-sm"
-                  >
-                    Takip Linki
-                  </a>
-                )}
-                {createdInfo?.barcodeUrl && (
-                  <a
-                    href={createdInfo.barcodeUrl}
-                    target="_blank"
-                    className="underline text-sm"
-                  >
-                    Barkod / Etiket
-                  </a>
-                )}
-              </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm mb-1">Desi</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={desi}
-                      onChange={(e) =>
-                        setDesi(e.target.value === "" ? "" : Number(e.target.value))
-                      }
-                      className="w-full border rounded-md px-3 py-2"
-                      placeholder="Örn: 1.2"
-                    />
-                  </div>
-
-                  {/* Dinamik: Carrier listesi */}
-                  <div>
-                    <label className="block text-sm mb-1">Kargo Firması</label>
-                    {carriersLoading ? (
-                      <div className="text-sm text-gray-500">Kargo firmaları yükleniyor…</div>
-                    ) : carriers.length === 0 ? (
-                      <div className="text-sm text-red-600">Kargo firması bulunamadı.</div>
-                    ) : (
-                      <select
-                        value={carrierId === "" ? "" : Number(carrierId)}
-                        onChange={(e) =>
-                          setCarrierId(e.target.value === "" ? "" : Number(e.target.value))
-                        }
-                        className="w-full border rounded-md px-3 py-2"
-                      >
-                        {carriers.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
-
-                  {/* Sabit: Hizmet tipi */}
-                  <div>
-                    <label className="block text-sm mb-1">Hizmet Tipi</label>
-                    <select
-                      value={postType === "" ? "" : Number(postType)}
-                      onChange={(e) =>
-                        setPostType(e.target.value === "" ? "" : Number(e.target.value))
-                      }
-                      className="w-full border rounded-md px-3 py-2"
-                    >
-                      {POST_TYPES.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="col-span-2">
-                    <label className="block text-sm mb-1">Not</label>
-                    <input
-                      type="text"
-                      value={note}
-                      onChange={(e) => setNote(e.target.value)}
-                      className="w-full border rounded-md px-3 py-2"
-                      placeholder="Opsiyonel not"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleCreateShipment}
-                  disabled={isCreatingShipment}
-                  className="w-full bg-indigo-600 text-white mt-4 py-2 rounded-md"
-                >
-                  {isCreatingShipment ? "Oluşturuluyor..." : "Navlungo ile Gönderi Oluştur"}
-                </button>
-
-                {createdInfo && (
-                  <div className="mt-4 text-sm space-y-1">
-                    {createdInfo.postNumber && (
-                      <p>
-                        <b>Post No:</b> {createdInfo.postNumber}
-                      </p>
-                    )}
-                    {createdInfo.trackingUrl && (
-                      <p>
-                        <b>Takip:</b>{" "}
-                        <a className="underline" href={createdInfo.trackingUrl} target="_blank">
-                          Link
-                        </a>
-                      </p>
-                    )}
-                    {createdInfo.barcodeUrl && (
-                      <p>
-                        <b>Barkod:</b>{" "}
-                        <a className="underline" href={createdInfo.barcodeUrl} target="_blank">
-                          PDF
-                        </a>
-                      </p>
-                    )}
-                  </div>
-                )}
-              </>
             )}
           </div>
         </div>
