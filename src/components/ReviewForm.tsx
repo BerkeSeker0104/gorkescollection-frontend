@@ -6,12 +6,11 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Star, Loader2 } from 'lucide-react';
-import { postReview } from '@/lib/api';
+// import { postReview } from '@/lib/api'; // NOT: Bu iterasyonda doğrudan fetch kullanıyoruz.
 import { Review } from '@/types';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
 
-// Form verileri için Zod şeması (validation)
 const reviewSchema = z.object({
   rating: z.number().min(1, 'Lütfen en az 1 yıldız seçin.'),
   comment: z.string().max(2000, 'Yorumunuz en fazla 2000 karakter olabilir.').optional(),
@@ -35,25 +34,61 @@ export default function ReviewForm({ productId, onReviewSubmitted }: ReviewFormP
     formState: { errors },
   } = useForm<ReviewFormData>({
     resolver: zodResolver(reviewSchema),
-    defaultValues: {
-      rating: 0,
-      comment: '',
-    },
+    defaultValues: { rating: 0, comment: '' },
   });
 
   const onSubmit = async (data: ReviewFormData) => {
     setIsSubmitting(true);
     try {
-      const newReview = await postReview(String(productId), data);
-      if (newReview) {
-        toast.success('Yorumunuz için teşekkür ederiz!');
-        onReviewSubmitted(newReview); // Yorumu anında listeye ekle
-        reset(); // Formu sıfırla
+      // DOĞRUDAN FETCH + CREDENTIALS
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/products/${String(productId)}/reviews`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            // Not: Gerekirse ileride Authorization: Bearer <token> ekleyebiliriz.
+          },
+          credentials: 'include', // <- JWT cookie'yi backend'e taşır (kritik)
+          body: JSON.stringify(data),
+        }
+      );
+
+      if (res.status === 401) {
+        toast.error('Yorum göndermek için lütfen giriş yapın.');
+        return;
       }
+
+      if (!res.ok) {
+        const msg = await safeErrorMessage(res);
+        throw new Error(msg || 'Yorum gönderilirken bir sorun oluştu.');
+      }
+
+      const newReview = (await res.json()) as Review;
+      toast.success('Yorumunuz için teşekkür ederiz!');
+      onReviewSubmitted(newReview);
+      reset();
     } catch (error: any) {
-      toast.error(error.message || 'Yorum gönderilirken bir hata oluştu.');
+      toast.error(error?.message || 'Yorum gönderilirken bir hata oluştu.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Yardımcı: backend'ten dönen hata mesajını güvenle çek
+  const safeErrorMessage = async (res: Response) => {
+    try {
+      const text = await res.text();
+      if (!text) return '';
+      // JSON ise parse etmeye çalış
+      try {
+        const j = JSON.parse(text);
+        return j?.message || j?.error || '';
+      } catch {
+        return text;
+      }
+    } catch {
+      return '';
     }
   };
 
