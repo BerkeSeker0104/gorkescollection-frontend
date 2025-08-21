@@ -154,6 +154,15 @@ const OrderList = () => {
 };
 
 // --- Adreslerim Bileşeni ---
+// +90 / 0 / boşluk / tire vs. temizleyip son 10 haneyi bırak
+function normalizeTRPhone(input?: string) {
+  if (!input) return "";
+  const digits = input.replace(/\D/g, "");      // sadece rakam
+  const withoutCC = digits.replace(/^90/, "");  // baştaki 90'ı at
+  const withoutZero = withoutCC.replace(/^0/, ""); // baştaki 0'ı at
+  return withoutZero.slice(-10); // son 10 haneyi al
+}
+
 const AddressManager = () => {
     const [addresses, setAddresses] = useState<Address[]>([]);
     const [loading, setLoading] = useState(true);
@@ -161,9 +170,9 @@ const AddressManager = () => {
     const [editingAddress, setEditingAddress] = useState<Address | null>(null);
 
     const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ShippingAddress>({
-        resolver: zodResolver(addressSchema),
-        defaultValues: { country: "Türkiye" }
-    });
+  resolver: zodResolver(addressSchema),
+  defaultValues: { country: "Türkiye", phoneNumber: "" }
+});
 
     const fetchAddresses = async () => {
         setLoading(true);
@@ -177,10 +186,10 @@ const AddressManager = () => {
     }, []);
 
     const handleEditClick = (address: Address) => {
-        setEditingAddress(address);
-        reset(address);
-        setShowForm(true);
-    };
+  setEditingAddress(address);
+  reset({ ...address, phoneNumber: normalizeTRPhone(address.phoneNumber) });
+  setShowForm(true);
+};
 
     const handleDeleteClick = async (addressId: number) => {
         if (window.confirm("Bu adresi silmek istediğinizden emin misiniz?")) {
@@ -200,24 +209,28 @@ const AddressManager = () => {
     }
 
     const onSubmit = async (data: ShippingAddress) => {
-        let success = false;
-        if (editingAddress) {
-            success = await updateAddress({ ...editingAddress, ...data });
-        } else {
-            const newAddress = await addAddress(data);
-            if (newAddress) {
-                setAddresses(prev => [...prev, newAddress]);
-                success = true;
-            }
-        }
+  // telefonu temizle
+  const cleanPhone = normalizeTRPhone(data.phoneNumber);
+  const payload = { ...data, phoneNumber: cleanPhone };
 
-        if (success) {
-            await fetchAddresses(); 
-            handleCancel();
-        } else {
-            alert("İşlem sırasında bir hata oluştu.");
-        }
-    };
+  let success = false;
+  if (editingAddress) {
+    success = await updateAddress({ ...editingAddress, ...payload });
+  } else {
+    const newAddress = await addAddress(payload);
+    if (newAddress) {
+      setAddresses(prev => [...prev, newAddress]);
+      success = true;
+    }
+  }
+
+  if (success) {
+    await fetchAddresses();
+    handleCancel();
+  } else {
+    alert("İşlem sırasında bir hata oluştu.");
+  }
+};
 
     if (loading) return <p>Adresler yükleniyor...</p>;
 
@@ -245,7 +258,15 @@ const AddressManager = () => {
                             <label htmlFor="phoneNumber" className="text-sm font-medium text-zinc-700">Telefon Numarası</label>
                             <div className="relative">
                                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-zinc-500">+90</span>
-                                <input type="tel" {...register("phoneNumber")} className={`${inputStyle} pl-10`} placeholder="5xxxxxxxxx"/>
+                                <input
+                                    type="tel"
+                                    {...register("phoneNumber")}
+                                    className={`${inputStyle} pl-10`}
+                                    placeholder="5xxxxxxxxx"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    maxLength={10}
+                                        />
                             </div>
                             {errors.phoneNumber && <p className="mt-1 text-xs text-red-500">{errors.phoneNumber.message}</p>}
                         </div>
