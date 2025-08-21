@@ -4,14 +4,10 @@
 import { Product } from '@/types';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Heart, ShoppingBag, Percent } from 'lucide-react';
-import { useFavorites } from '@/context/FavoritesContext';
-import { useAuth } from '@/context/AuthContext';
+import { ShoppingBag } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { useRouter } from 'next/navigation';
-import clsx from 'clsx';
-import { useState } from 'react';
 import { toast } from 'react-hot-toast';
+import FavoriteButton from './FavoriteButton'; // YENİ: FavoriteButton'ı import ediyoruz
 
 interface ProductCardProps {
   product: Product;
@@ -26,13 +22,7 @@ const formatTRY = (n: number) =>
   });
 
 const ProductCard = ({ product }: ProductCardProps) => {
-  const { isFavorite, toggleFavoriteStatus } = useFavorites();
-  const { user } = useAuth();
   const { addItem } = useCart();
-  const router = useRouter();
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  const isFavorited = isFavorite(product.id);
 
   // ---- fiyat mantığı ----
   const base =
@@ -45,22 +35,9 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
   const thumb =
     (product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls[0] : null) ||
-    `https://placehold.co/400x400/F7F5F2/333333.png?text=${encodeURIComponent(product.name)}`;
-
-  const handleFavoriteClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!user) {
-      router.push('/giris');
-      return;
-    }
-
-    if (!isFavorited) setIsAnimating(true);
-    toggleFavoriteStatus(product);
-  };
-
-  const handleAnimationEnd = () => setIsAnimating(false);
+    `https://placehold.co/400x400/F7F5F2/333333.png?text=${encodeURIComponent(
+      product.name
+    )}`;
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -102,21 +79,13 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </div>
         )}
 
-        {/* Favori butonu */}
-        <button
-          onClick={handleFavoriteClick}
-          onAnimationEnd={handleAnimationEnd}
-          className="absolute top-3 right-3 p-2 bg-white/70 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity z-10"
-          aria-label={isFavorited ? 'Favorilerden çıkar' : 'Favorilere ekle'}
-        >
-          <Heart
-            size={20}
-            className={clsx('text-gray-700 transition-colors', {
-              'fill-red-500 text-red-500': isFavorited,
-              'animate-heartbeat': isAnimating,
-            })}
+        {/* Favori butonu (YENİ BİLEŞEN KULLANILIYOR) */}
+        <div className="absolute top-3 right-3">
+          <FavoriteButton
+            product={product}
+            className="bg-white/70 backdrop-blur-sm lg:opacity-0 group-hover:opacity-100"
           />
-        </button>
+        </div>
 
         {/* Sepete Ekle - Desktop */}
         <button

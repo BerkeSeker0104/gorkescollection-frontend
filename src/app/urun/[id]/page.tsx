@@ -7,6 +7,7 @@ import AddToCartButton from "@/components/AddToCartButton";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams } from "next/navigation";
 import useEmblaCarousel from "embla-carousel-react";
+import FavoriteButton from "@/components/FavoriteButton";
 import Autoplay from "embla-carousel-autoplay";
 
 const PLACEHOLDER = "/placeholder.png";
@@ -216,9 +217,13 @@ export default function ProductPage() {
 
             {/* Sağ: Bilgiler */}
             <div className="mt-4 md:mt-0">
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                {product.name}
-              </h1>
+              <div className="flex items-start justify-between gap-4">
+  <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+    {product.name}
+  </h1>
+  {/* Favori Butonunu Buraya Ekliyoruz */}
+  <FavoriteButton product={product} />
+</div>
               <p className="mt-4 text-3xl tracking-tight text-gray-900">
                 {typeof product.price === "number"
                   ? product.price.toLocaleString("tr-TR", {
