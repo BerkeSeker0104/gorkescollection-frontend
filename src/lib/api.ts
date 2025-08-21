@@ -30,43 +30,39 @@ export const postReview = async (
   productId: string,
   data: { rating: number; comment?: string }
 ): Promise<Review | null> => {
-  // Hem cookie hem Authorization header kullan (yedekli)
-  const token = getToken();
+  // 🔑 JWT'yi sitedeki cookie'den al
+  const token = Cookies.get('token');
 
-  const res = await fetch(`${API_URL}/api/products/${productId}/reviews`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: JSON.stringify(data),
-    // Çerez varsa gönder (cross-site için gerekli)
-    credentials: 'include',
-  });
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/products/${productId}/reviews`,
+    {
+      method: 'POST',
+      credentials: 'include', // sepet vb. için gerekli; kalsın
+      headers: {
+        'Content-Type': 'application/json',
+        // 🔑 API farklı origin’de olduğu için cookie gitmez; header ile taşıyoruz
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(data),
+    }
+  );
 
   if (!res.ok) {
-    // 401 için özel, anlaşılır mesaj
+    // 401 ise daha açıklayıcı mesaj üret
     if (res.status === 401) {
-      // backend bazen boş gövde döndürebilir; bu yüzden try/catch
-      let msg = 'Yorum göndermek için lütfen giriş yapın.';
-      try {
-        const err = await res.json();
-        if (err?.message) msg = err.message;
-      } catch {}
-      throw new Error(msg);
+      throw new Error('Yorum göndermek için lütfen giriş yapın.');
     }
-
-    // Diğer hatalarda backend mesajını göstermeye çalış
+    // Backend gövdesi metin/JSON olabilir; güvenli oku
+    const text = await res.text().catch(() => '');
     try {
-      const err = await res.json();
-      throw new Error(err?.message || 'Yorum gönderilemedi.');
+      const j = text ? JSON.parse(text) : {};
+      throw new Error(j?.message || 'Yorum gönderilemedi.');
     } catch {
-      const text = await res.text().catch(() => '');
       throw new Error(text || 'Yorum gönderilemedi.');
     }
   }
 
-  // Başarılı senaryo
+  // Başarılı
   return res.json();
 };
 
