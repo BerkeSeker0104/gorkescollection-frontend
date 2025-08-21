@@ -245,11 +245,6 @@ const AddressManager = () => {
     }
   };
 
-  // 🔑 Manuel tetikleyici: olası overlay/native validation sorunlarını by-pass eder
-  const submitForm = () => {
-    handleSubmit(onSubmit)();
-  };
-
   if (loading) return <p>Adresler yükleniyor...</p>;
 
   return (
@@ -257,7 +252,7 @@ const AddressManager = () => {
       <div className="flex justify-end items-center mb-6">
         {!showForm && (
           <button
-            type="button" // submit olmasın
+            type="button"
             onClick={() => setShowForm(true)}
             className="text-sm font-medium text-[#A58E74] hover:opacity-80 transition-colors"
           >
@@ -268,10 +263,9 @@ const AddressManager = () => {
 
       {showForm && (
         <form
-          id="address-form"
           onSubmit={handleSubmit(onSubmit)}
           noValidate
-          className="space-y-4 bg-zinc-50 p-6 rounded-lg mb-8 border border-gray-200"
+          className="space-y-4 bg-zinc-50 p-6 rounded-lg mb-8 border border-gray-200 relative z-[100] pointer-events-auto"
         >
           <h3 className="text-lg font-medium text-zinc-800">
             {editingAddress ? "Adresi Düzenle" : "Yeni Adres Bilgileri"}
@@ -356,12 +350,11 @@ const AddressManager = () => {
           </div>
 
           <div className="flex gap-4 pt-2">
-            {/* type="button" + manuel tetikleme → tıklama sorunlarını aşar */}
+            {/* Doğrudan submit → RHF handleSubmit tetiklenir */}
             <button
-              type="button"
-              onClick={submitForm}
+              type="submit"
               disabled={isSubmitting}
-              className={`${buttonPrimaryStyle} relative z-50 pointer-events-auto`}
+              className={`${buttonPrimaryStyle} relative z-[200]`}
             >
               {isSubmitting ? "Kaydediliyor..." : "Adresi Kaydet"}
             </button>
@@ -557,7 +550,7 @@ export default function AccountPage() {
                         </nav>
                     </aside>
                     <div className="lg:col-span-9 mt-12 lg:mt-0">
-                         <div className="bg-white p-6 sm:p-8 rounded-xl shadow-md">
+                         <div className="bg-white p-6 sm:p-8 rounded-xl shadow-md relative z-50">
                             <h2 className="text-2xl font-semibold text-zinc-800 mb-6">
                                 {menuItems.find(item => item.id === activeTab)?.label}
                             </h2>
