@@ -26,22 +26,47 @@ const getToken = () => Cookies.get('token');
 /* HERKESE AÇIK FONKSİYONLAR                                                */
 /* ------------------------------------------------------------------------- */
 
-export const postReview = async (productId: string, data: { rating: number; comment?: string }): Promise<Review | null> => {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/${productId}/reviews`, {
+export const postReview = async (
+  productId: string,
+  data: { rating: number; comment?: string }
+): Promise<Review | null> => {
+  // Hem cookie hem Authorization header kullan (yedekli)
+  const token = getToken();
+
+  const res = await fetch(`${API_URL}/api/products/${productId}/reviews`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify(data),
-    // Giriş yapmış kullanıcının cookie'sini isteğe dahil etmek için credentials: 'include' kullanılır [cite: 716]
-    credentials: 'include', 
+    // Çerez varsa gönder (cross-site için gerekli)
+    credentials: 'include',
   });
 
   if (!res.ok) {
-    const errorData = await res.json();
-    // Backend'den gelen spesifik hata mesajını fırlatıyoruz
-    throw new Error(errorData.message || 'Yorum gönderilemedi.');
+    // 401 için özel, anlaşılır mesaj
+    if (res.status === 401) {
+      // backend bazen boş gövde döndürebilir; bu yüzden try/catch
+      let msg = 'Yorum göndermek için lütfen giriş yapın.';
+      try {
+        const err = await res.json();
+        if (err?.message) msg = err.message;
+      } catch {}
+      throw new Error(msg);
+    }
+
+    // Diğer hatalarda backend mesajını göstermeye çalış
+    try {
+      const err = await res.json();
+      throw new Error(err?.message || 'Yorum gönderilemedi.');
+    } catch {
+      const text = await res.text().catch(() => '');
+      throw new Error(text || 'Yorum gönderilemedi.');
+    }
   }
+
+  // Başarılı senaryo
   return res.json();
 };
 
