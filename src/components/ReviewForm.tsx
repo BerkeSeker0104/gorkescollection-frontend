@@ -43,13 +43,12 @@ export default function ReviewForm({ productId, onReviewSubmitted }: ReviewFormP
       // TOKEN'I LOCALSTORAGE'DAN AL
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
-      // Token yoksa backend 401 dönecektir; kullanıcıyı erken bilgilendir.
       if (!token) {
         toast.error('Yorum göndermek için lütfen giriş yapın.');
         return;
       }
 
-      // FETCH: Authorization header ile gönder, cookie/credentials kullanma
+      // FETCH: Authorization header ile gönder, cookie/credentials KULLANMA
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/products/${String(productId)}/reviews`,
         {
@@ -62,7 +61,7 @@ export default function ReviewForm({ productId, onReviewSubmitted }: ReviewFormP
         }
       );
 
-      if (res.status === 401) {
+      if (res.status === 401 || res.status === 403) {
         toast.error('Yorum göndermek için lütfen giriş yapın.');
         return;
       }
@@ -88,7 +87,6 @@ export default function ReviewForm({ productId, onReviewSubmitted }: ReviewFormP
     try {
       const text = await res.text();
       if (!text) return '';
-      // JSON ise parse etmeye çalış
       try {
         const j = JSON.parse(text);
         return j?.message || j?.error || '';
