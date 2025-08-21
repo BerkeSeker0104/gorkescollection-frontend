@@ -6,9 +6,11 @@ import { Product, Review } from "@/types";
 import { getReviewsForProduct } from "@/lib/api";
 import StarRating from "@/components/StarRating";
 import ReviewList from "@/components/ReviewList";
+// --- YENİ: Yorum formu ve auth ---
 import { useAuth } from "@/context/AuthContext";
 import ReviewForm from "@/components/ReviewForm";
 import Link from "next/link";
+// ---
 
 import Image from "next/image";
 import AddToCartButton from "@/components/AddToCartButton";
@@ -29,7 +31,7 @@ export default function ProductPage() {
   // YORUMLAR: liste state'i
   const [reviews, setReviews] = useState<Review[]>([]);
 
-  // Auth (yorum formu için)
+  // Yorum formu için kullanıcı bilgisi
   const { user } = useAuth();
 
   // Lightbox durumu
@@ -47,24 +49,24 @@ export default function ProductPage() {
     align: "start",
   });
 
-  // --------- RESPONSIVE AÇ/KAPA DURUMLARI (Mobil: kapalı, Masaüstü: açık) ----------
-  const [isDesktop, setIsDesktop] = useState<boolean>(false);
-  const [openReviews, setOpenReviews] = useState<boolean>(false);
-  const [openSpecs, setOpenSpecs] = useState<boolean>(false);
+  // ---------- AÇ/KAPA (mobil kapalı, masaüstünde açık) ----------
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [openSpecs, setOpenSpecs] = useState(false);
+  const [openReviews, setOpenReviews] = useState(false);
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 768px)");
     const apply = () => {
-      setIsDesktop(mq.matches);
-      // Masaüstüne geçince her ikisini de açık yap; mobile geçince kapalı başlat
-      setOpenReviews(mq.matches);
-      setOpenSpecs(mq.matches);
+      const desktop = mq.matches;
+      setIsDesktop(desktop);
+      setOpenSpecs(desktop);
+      setOpenReviews(desktop);
     };
     apply();
     mq.addEventListener?.("change", apply);
     return () => mq.removeEventListener?.("change", apply);
   }, []);
-  // -------------------------------------------------------------------------------
+  // --------------------------------------------------------------
 
   // ÜRÜN + YORUM VERİSİ: paralel çekim
   useEffect(() => {
@@ -96,7 +98,7 @@ export default function ProductPage() {
     getProductAndReviews(id);
   }, [id]);
 
-  // YORUM ÖZETİ
+  // YORUM ÖZETİ: ortalama ve adet
   const reviewSummary = useMemo(() => {
     const count = reviews.length;
     if (count === 0) return { average: 0, count: 0 };
@@ -106,11 +108,13 @@ export default function ProductPage() {
   }, [reviews]);
 
   // Yorum formu submit → listeyi anında güncelle
+  const reviewFormRef = useRef<HTMLDivElement | null>(null);
   const handleReviewSubmitted = (newReview: Review) => {
     setReviews((prev) => [newReview, ...prev]);
-    setOpenReviews(true); // mobilde açık kalsın
-    // forma kaydır
-    setTimeout(() => reviewFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
+    setOpenReviews(true);
+    setTimeout(() => {
+      reviewFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
   };
 
   // Görseller
@@ -184,15 +188,14 @@ export default function ProductPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isLightboxOpen, closeLightbox, scrollNext, scrollPrev]);
 
-  // --- “Yorum Yap” butonu formuna kaydırma için ref ---
-  const reviewFormRef = useRef<HTMLDivElement | null>(null);
+  if (loading) return <div className="pt-40 text-center">Yükleniyor...</div>;
+  if (!product) return <div className="pt-40 text-center">Ürün bulunamadı.</div>;
+
+  // “Yorum Yap” butonundan forma kaydır
   const scrollToReviewForm = () => {
     setOpenReviews(true);
     reviewFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
-
-  if (loading) return <div className="pt-40 text-center">Yükleniyor...</div>;
-  if (!product) return <div className="pt-40 text-center">Ürün bulunamadı.</div>;
 
   return (
     <>
@@ -232,7 +235,15 @@ export default function ProductPage() {
                       className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-md transition-opacity focus:outline-none focus:ring-2 focus:ring-gray-900"
                       aria-label="Önceki görsel"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
                     </button>
                     <button
                       type="button"
@@ -240,7 +251,15 @@ export default function ProductPage() {
                       className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-md transition-opacity focus:outline-none focus:ring-2 focus:ring-gray-900"
                       aria-label="Sonraki görsel"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
                     </button>
                   </>
                 )}
@@ -281,12 +300,20 @@ export default function ProductPage() {
                 {product.name}
               </h1>
 
-              {/* YORUM ÖZETİ */}
+              {/* YORUM ÖZETİ (sayfanın üstünde küçük gösterim) */}
               <div className="mt-3 flex items-center">
                 {reviewSummary.count > 0 ? (
                   <>
                     <StarRating rating={reviewSummary.average} starSize={20} />
-                    <a href="#reviews" className="ml-3 text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                    <a
+                      href="#reviews"
+                      className="ml-3 text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setOpenReviews(true);
+                        document.getElementById("reviews")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }}
+                    >
                       {reviewSummary.count} yorum
                     </a>
                   </>
@@ -320,43 +347,49 @@ export default function ProductPage() {
                 />
               </div>
 
-              {/* ÖZELLİKLER - AÇILIR/KAPANIR (Mobilde kapalı, Masaüstünde açık) */}
-              <div className="mt-10">
-                <button
-                  type="button"
-                  onClick={() => setOpenSpecs((s) => !s)}
-                  className="w-full flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 bg-white hover:bg-gray-50"
-                  aria-expanded={openSpecs}
-                >
-                  <span className="text-lg font-semibold text-gray-900">Özellikler</span>
-                  <svg
-                    className={`h-5 w-5 transition-transform ${openSpecs ? "rotate-180" : ""}`}
-                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+              {/* ÖZELLİKLER - AÇILIR/KAPANIR */}
+              {product.specifications && Object.keys(product.specifications).length > 0 && (
+                <div className="mt-10">
+                  {/* Başlık butonu */}
+                  <button
+                    type="button"
+                    onClick={() => setOpenSpecs((s) => !s)}
+                    className="w-full flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 bg-white hover:bg-gray-50"
+                    aria-expanded={openSpecs}
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
+                    <span className="text-lg font-semibold text-gray-900">Özellikler</span>
+                    <svg
+                      className={`h-5 w-5 transition-transform ${openSpecs ? "rotate-180" : ""}`}
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
 
-                {/* İçerik */}
-                {(openSpecs || isDesktop) && product.specifications && Object.keys(product.specifications).length > 0 && (
-                  <div className="mt-4 border border-gray-200 rounded-lg p-4">
-                    <dl className="divide-y divide-gray-200">
-                      {Object.entries(product.specifications).map(([key, value]) => (
-                        <div key={key} className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 py-3">
-                          <dt className="font-medium text-gray-900">{key}</dt>
-                          <dd className="sm:col-span-2 mt-1 sm:mt-0">{String(value)}</dd>
-                        </div>
-                      ))}
-                    </dl>
-                  </div>
-                )}
-              </div>
+                  {/* İçerik: sadece açıkken göster */}
+                  {(openSpecs || isDesktop) && (
+                    <div className="mt-4 border border-gray-200 rounded-lg p-4">
+                      <dl className="divide-y divide-gray-200">
+                        {Object.entries(product.specifications).map(([key, value]) => (
+                          <div key={key} className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 py-3">
+                            <dt className="font-medium text-gray-900">{key}</dt>
+                            <dd className="sm:col-span-2 mt-1 sm:mt-0">{String(value)}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* YORUMLAR - AÇILIR/KAPANIR (Mobilde kapalı, Masaüstünde açık) */}
+          {/* YORUMLAR - AÇILIR/KAPANIR */}
           <div id="reviews" className="mt-16">
-            {/* Başlık satırı */}
+            {/* Başlık butonu */}
             <button
               type="button"
               onClick={() => setOpenReviews((s) => !s)}
@@ -366,16 +399,19 @@ export default function ProductPage() {
               <span className="text-lg font-bold text-gray-900">Yorumlar ({reviewSummary.count})</span>
               <svg
                 className={`h-5 w-5 transition-transform ${openReviews ? "rotate-180" : ""}`}
-                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
 
-            {/* İçerik */}
+            {/* İçerik: sadece açıkken göster */}
             {(openReviews || isDesktop) && (
               <div className="mt-4 border border-gray-200 rounded-lg p-4">
-                {/* ÜST ÖZET ŞERİDİ: solda puan + yıldız, sağda yorum yap */}
+                {/* ÜST ÖZET: solda büyük puan + yıldızlar; sağda “Yorum Yap” */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
                   <div className="md:col-span-2 flex items-center gap-4">
                     <div className="text-5xl font-semibold text-gray-900 tabular-nums">
@@ -383,9 +419,7 @@ export default function ProductPage() {
                     </div>
                     <div>
                       <StarRating rating={reviewSummary.average} starSize={20} />
-                      <div className="text-sm text-gray-600 mt-1">
-                        {reviewSummary.count} Değerlendirme
-                      </div>
+                      <div className="text-sm text-gray-600 mt-1">{reviewSummary.count} Değerlendirme</div>
                     </div>
                   </div>
 
@@ -400,11 +434,11 @@ export default function ProductPage() {
                   </div>
                 </div>
 
-                {/* İÇERİK GRIDİ: Sol form (login varsa), sağ liste */}
-                <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-10">
-                  {/* SOL: Yorum Yaz */}
+                {/* İçerik grid: sol form, sağ liste */}
+                <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-x-12 gap-y-10">
+                  {/* SOL: Yorum Yazma */}
                   <div className="lg:col-span-1">
-                    <h3 className="text-base font-medium text-gray-900">Yorumunuzu Paylaşın</h3>
+                    <h3 className="text-lg font-medium text-gray-900">Yorumunuzu Paylaşın</h3>
                     <div ref={reviewFormRef} className="mt-4">
                       {user ? (
                         <ReviewForm productId={product.id} onReviewSubmitted={handleReviewSubmitted} />
@@ -420,9 +454,9 @@ export default function ProductPage() {
                     </div>
                   </div>
 
-                  {/* SAĞ: Liste */}
+                  {/* SAĞ: Yorum Listesi */}
                   <div className="lg:col-span-2">
-                    <h3 className="text-base font-medium text-gray-900">Müşteri Yorumları</h3>
+                    <h3 className="text-lg font-medium text-gray-900">Müşteri Yorumları</h3>
                     <div className="mt-4">
                       <ReviewList reviews={reviews} />
                     </div>
