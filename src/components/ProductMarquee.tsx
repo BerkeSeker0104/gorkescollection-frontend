@@ -151,10 +151,14 @@ export default function ProductMarquee({ products }: Props) {
 
   return (
     <div
-      className="relative w-full overflow-hidden"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => !dragging && setPaused(false)} // Sürükleme bitmeden auto-play başlamasın
-      onWheel={onWheel}
+  className="relative w-full overflow-hidden"
+  onMouseEnter={() => setPaused(true)}
+  onMouseLeave={() => {
+    if (!dragging) {
+      setTimeout(() => setPaused(false), 50); 
+    }
+  }}
+  onWheel={onWheel}
       style={{
         touchAction: "pan-x",
         overscrollBehavior: "contain",
