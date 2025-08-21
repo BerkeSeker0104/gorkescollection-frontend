@@ -30,39 +30,25 @@ export const postReview = async (
   productId: string,
   data: { rating: number; comment?: string }
 ): Promise<Review | null> => {
-  // 🔑 JWT'yi sitedeki cookie'den al
-  const token = Cookies.get('token');
-
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/products/${productId}/reviews`,
-    {
-      method: 'POST',
-      credentials: 'include', // sepet vb. için gerekli; kalsın
-      headers: {
-        'Content-Type': 'application/json',
-        // 🔑 API farklı origin’de olduğu için cookie gitmez; header ile taşıyoruz
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify(data),
-    }
-  );
+  const token = Cookies.get('token'); // varsa bearer olarak da gönderelim
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/${productId}/reviews`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(data),
+    credentials: 'include', // ✅ AuthToken cookie’sini gönder
+  });
 
   if (!res.ok) {
-    // 401 ise daha açıklayıcı mesaj üret
-    if (res.status === 401) {
-      throw new Error('Yorum göndermek için lütfen giriş yapın.');
-    }
-    // Backend gövdesi metin/JSON olabilir; güvenli oku
-    const text = await res.text().catch(() => '');
+    let message = 'Yorum gönderilemedi.';
     try {
-      const j = text ? JSON.parse(text) : {};
-      throw new Error(j?.message || 'Yorum gönderilemedi.');
-    } catch {
-      throw new Error(text || 'Yorum gönderilemedi.');
-    }
+      const errorData = await res.json();
+      if (errorData?.message) message = errorData.message;
+    } catch { /* text/no-json durumunda sessiz kal */ }
+    throw new Error(message);
   }
-
-  // Başarılı
   return res.json();
 };
 
@@ -249,22 +235,27 @@ export const deleteAddress = async (addressId: number): Promise<boolean> => {
 /* KİMLİK DOĞRULAMA                                                          */
 /* ------------------------------------------------------------------------- */
 
-export const loginUser = async (data: LoginData): Promise<{user: UserDto | null, error?: string}> => {
+export const loginUser = async (
+  data: LoginData
+): Promise<{ user: UserDto | null; error?: string }> => {
   try {
     const response = await fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', // ✅ ÖNEMLİ: AuthToken cookie’si tarayıcıya yazılabilsin
       body: JSON.stringify(data),
     });
+
     if (!response.ok) {
       const errorText = await response.text();
-      // Unauthorized hatasını özel olarak yakala
       if (response.status === 401) {
-          return { user: null, error: errorText };
+        return { user: null, error: errorText || 'Yetkisiz.' };
       }
       console.error('Giriş API hatası:', response.status, errorText);
       return { user: null, error: 'Sunucu hatası oluştu.' };
     }
+
+    // Not: Backend hem body’de user döner hem de Set-Cookie ile AuthToken yazar.
     return { user: await response.json(), error: undefined };
   } catch (error) {
     console.error('Giriş sırasında ağ/fetch hatası:', error);
