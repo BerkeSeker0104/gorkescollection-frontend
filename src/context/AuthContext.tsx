@@ -1,9 +1,8 @@
 'use client';
 
 import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
-import { UserDto, LoginData } from '@/types'; // RegisterData kaldırıldı
-import Cookies from 'js-cookie';
-import { loginUser } from '@/lib/api'; // registerUser kaldırıldı
+import { UserDto, LoginData } from '@/types';
+import { loginUser } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
 
@@ -12,13 +11,14 @@ interface DecodedToken {
     "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": string;
     "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress": string;
     "http://schemas.microsoft.com/ws/2008/06/identity/claims/role": string | string[];
+    "exp": number;
 }
 
 interface AuthContextType {
   user: UserDto | null;
   isAdmin: boolean;
+  token: string | null;
   login: (data: LoginData) => Promise<void>;
-  // register fonksiyonu kaldırıldı
   logout: () => void;
   loading: boolean;
 }
@@ -36,76 +36,90 @@ export function useAuth() {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserDto | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const loadUserFromToken = () => {
+  useEffect(() => {
+    setLoading(true);
     try {
-      const token = Cookies.get('token');
-      if (token) {
-        const decodedToken: DecodedToken = jwtDecode(token);
+      const storedToken = localStorage.getItem('token');
+      if (storedToken) {
+        const decodedToken: DecodedToken = jwtDecode(storedToken);
         
-        const roleClaim = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
-        const roles = Array.isArray(roleClaim) ? roleClaim : [roleClaim];
-        
-        setIsAdmin(roles.includes('Admin'));
+        if (decodedToken.exp * 1000 > Date.now()) {
+          const roleClaim = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+          const roles = Array.isArray(roleClaim) ? roleClaim : [roleClaim];
+          
+          setIsAdmin(roles.includes('Admin'));
+          setToken(storedToken);
 
-        const userCookie = Cookies.get('user');
-        if (userCookie) {
-          setUser(JSON.parse(userCookie));
+          const storedUser = localStorage.getItem('user');
+          if (storedUser) {
+            // DÜZELTME: localStorage'dan okunan user nesnesi artık tam bir UserDto
+            setUser(JSON.parse(storedUser));
+          }
+        } else {
+          logout();
         }
       } else {
         setIsAdmin(false);
         setUser(null);
+        setToken(null);
       }
     } catch (error) {
       console.error("Token okunurken hata:", error);
       logout();
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    loadUserFromToken();
   }, []);
 
   const handleAuthSuccess = (userData: UserDto) => {
+    // DÜZELTME: localStorage'a userData'nın tamamını kaydediyoruz.
+    localStorage.setItem('token', userData.token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    
+    // DÜZELTME: State'i de userData'nın tamamıyla güncelliyoruz.
     setUser(userData);
-    Cookies.set('token', userData.token, { expires: 7, secure: true, sameSite: 'strict' });
-    Cookies.set('user', JSON.stringify(userData), { expires: 7, secure: true, sameSite: 'strict' });
-    loadUserFromToken();
+    setToken(userData.token);
+    
+    // isAdmin durumunu token'dan anlık olarak ayarla
+    try {
+      const decodedToken: DecodedToken = jwtDecode(userData.token);
+      const roleClaim = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+      const roles = Array.isArray(roleClaim) ? roleClaim : [roleClaim];
+      setIsAdmin(roles.includes('Admin'));
+    } catch (e) {
+      setIsAdmin(false);
+    }
+    
     router.push('/hesabim');
   };
 
-  // --- GÜNCELLENDİ: login fonksiyonu ---
   const login = async (data: LoginData) => {
-    // loginUser artık { user, error } nesnesi döndürüyor.
     const result = await loginUser(data); 
 
     if (result.user) {
-      // Başarılı olursa, sadece user nesnesini gönderiyoruz.
       handleAuthSuccess(result.user);
     } else {
-      // Başarısız olursa, backend'den gelen hatayı gösteriyoruz.
       alert(result.error || "Giriş başarısız. Lütfen bilgilerinizi kontrol edin.");
     }
   };
 
-  // --- SİLİNDİ: register fonksiyonu artık burada değil ---
-  // Kayıt işlemi artık kendi sayfasında yönetiliyor ve
-  // başarılı olunca kullanıcıyı bilgilendiriyor, giriş yaptırmıyor.
-
   const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    
     setUser(null);
     setIsAdmin(false);
-    Cookies.remove('token');
-    Cookies.remove('user');
-    router.push('/');
+    setToken(null);
+    
+    window.location.href = '/';
   };
 
   return (
-    // register buradan kaldırıldı
-    <AuthContext.Provider value={{ user, isAdmin, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, isAdmin, token, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

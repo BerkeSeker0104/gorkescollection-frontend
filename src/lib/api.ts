@@ -20,33 +20,41 @@ import {
 import Cookies from 'js-cookie';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-const getToken = () => Cookies.get('token');
+// YENİ MERKEZİ FONKSİYON: Token'ı localStorage'dan al
+const getToken = (): string | null => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('token');
+  }
+  return null;
+};
+
+// GÜNCELLENMİŞ MERKEZİ FONKSİYON: Her zaman geçerli bir Headers nesnesi döndürür
+const getAuthHeaders = (): HeadersInit => {
+  const headers: { [key: string]: string } = {};
+  const token = getToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+};
 
 /* ------------------------------------------------------------------------- */
 /* HERKESE AÇIK FONKSİYONLAR                                                */
 /* ------------------------------------------------------------------------- */
 
-export const postReview = async (
-  productId: string,
-  data: { rating: number; comment?: string }
-): Promise<Review | null> => {
-  const token = Cookies.get('token'); // varsa bearer olarak da gönderelim
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/${productId}/reviews`, {
+export const postReview = async (productId: string, data: { rating: number; comment?: string }): Promise<Review | null> => {
+  const res = await fetch(`${API_URL}/api/products/${productId}/reviews`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...getAuthHeaders(), // YENİ
     },
     body: JSON.stringify(data),
-    credentials: 'include', // ✅ AuthToken cookie’sini gönder
   });
 
   if (!res.ok) {
     let message = 'Yorum gönderilemedi.';
-    try {
-      const errorData = await res.json();
-      if (errorData?.message) message = errorData.message;
-    } catch { /* text/no-json durumunda sessiz kal */ }
+    try { const errorData = await res.json(); if (errorData?.message) message = errorData.message; } catch {}
     throw new Error(message);
   }
   return res.json();
@@ -68,34 +76,17 @@ export const getReviewsForProduct = async (productId: string): Promise<Review[]>
 };
 
 
-export async function initiatePaytrPayment(
-  address: ShippingAddress,
-  guestEmail?: string,
-  preferredCarrier?: string
-) {
-  const token = Cookies.get("token"); // giriş yaptıysan burada olur
+export async function initiatePaytrPayment(address: ShippingAddress, guestEmail?: string, preferredCarrier?: string) {
+  const res = await fetch(`${API_URL}/api/payments/initiate-payment`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(), // YENİ
+    },
+    body: JSON.stringify({ shippingAddress: address, email: guestEmail, preferredCarrier }),
+  });
 
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/payments/initiate-payment`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}), // 🔑 ekle
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        shippingAddress: address,
-        email: guestEmail,          // misafir ise zorunlu
-        preferredCarrier,
-      }),
-    }
-  );
-
-  if (!res.ok) {
-    const t = await res.text().catch(() => "");
-    throw new Error(t || "Ödeme başlatılamadı");
-  }
+  if (!res.ok) { const t = await res.text().catch(() => ""); throw new Error(t || "Ödeme başlatılamadı"); }
   const data = await res.json();
   return (data?.iframeToken ?? data?.token) as string | undefined;
 }
@@ -235,30 +226,20 @@ export const deleteAddress = async (addressId: number): Promise<boolean> => {
 /* KİMLİK DOĞRULAMA                                                          */
 /* ------------------------------------------------------------------------- */
 
-export const loginUser = async (
-  data: LoginData
-): Promise<{ user: UserDto | null; error?: string }> => {
+export const loginUser = async (data: LoginData): Promise<{ user: UserDto | null; error?: string }> => {
   try {
     const response = await fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', // ✅ ÖNEMLİ: AuthToken cookie’si tarayıcıya yazılabilsin
       body: JSON.stringify(data),
     });
-
+    // ÖNEMLİ: Login endpoint'i cookie set etmeyeceği için artık credentials: 'include' GEREKMİYOR.
     if (!response.ok) {
       const errorText = await response.text();
-      if (response.status === 401) {
-        return { user: null, error: errorText || 'Yetkisiz.' };
-      }
-      console.error('Giriş API hatası:', response.status, errorText);
-      return { user: null, error: 'Sunucu hatası oluştu.' };
+      return { user: null, error: errorText || 'Yetkisiz.' };
     }
-
-    // Not: Backend hem body’de user döner hem de Set-Cookie ile AuthToken yazar.
     return { user: await response.json(), error: undefined };
   } catch (error) {
-    console.error('Giriş sırasında ağ/fetch hatası:', error);
     return { user: null, error: 'Sunucuya ulaşılamadı.' };
   }
 };
@@ -313,14 +294,12 @@ export const getCart = async (): Promise<CartDto | null> => {
   try {
     const res = await fetch(`${API_URL}/api/cart`, {
       method: 'GET',
-      credentials: 'include',
+      headers: { ...getAuthHeaders() }, // YENİ
       cache: 'no-store',
     });
-    if (res.status === 404) return null;
     if (!res.ok) return null;
     return res.json();
   } catch (e) {
-    console.error('Sepet alınırken ağ hatası:', e);
     return null;
   }
 };
@@ -329,14 +308,12 @@ export const addToCart = async (productId: number, quantity: number): Promise<Ca
   try {
     const res = await fetch(`${API_URL}/api/cart/items`, {
       method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ productId, quantity }), // 👈 body
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() }, // YENİ
+      body: JSON.stringify({ productId, quantity }),
     });
     if (!res.ok) return null;
     return res.json();
   } catch (e) {
-    console.error('Sepete eklerken ağ hatası:', e);
     return null;
   }
 };
@@ -345,14 +322,12 @@ export const removeFromCart = async (productId: number, quantity: number): Promi
   try {
     const res = await fetch(`${API_URL}/api/cart/items`, {
       method: 'DELETE',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ productId, quantity }), // 👈 body
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() }, // YENİ
+      body: JSON.stringify({ productId, quantity }),
     });
     if (!res.ok) return null;
-    return getCart();
+    return getCart(); // getCart zaten yeni header'ı kullanıyor
   } catch (e) {
-    console.error('Sepetten çıkarırken ağ hatası:', e);
     return null;
   }
 };
