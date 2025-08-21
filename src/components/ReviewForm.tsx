@@ -40,16 +40,24 @@ export default function ReviewForm({ productId, onReviewSubmitted }: ReviewFormP
   const onSubmit = async (data: ReviewFormData) => {
     setIsSubmitting(true);
     try {
-      // DOĞRUDAN FETCH + CREDENTIALS
+      // TOKEN'I LOCALSTORAGE'DAN AL
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
+      // Token yoksa backend 401 dönecektir; kullanıcıyı erken bilgilendir.
+      if (!token) {
+        toast.error('Yorum göndermek için lütfen giriş yapın.');
+        return;
+      }
+
+      // FETCH: Authorization header ile gönder, cookie/credentials kullanma
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/products/${String(productId)}/reviews`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            // Not: Gerekirse ileride Authorization: Bearer <token> ekleyebiliriz.
+            Authorization: `Bearer ${token}`,
           },
-          credentials: 'include', // <- JWT cookie'yi backend'e taşır (kritik)
           body: JSON.stringify(data),
         }
       );
