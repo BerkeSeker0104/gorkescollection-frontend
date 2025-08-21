@@ -217,13 +217,9 @@ export default function ProductPage() {
 
             {/* Sağ: Bilgiler */}
             <div className="mt-4 md:mt-0">
-              <div className="flex items-start justify-between gap-4">
-  <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-    {product.name}
-  </h1>
-  {/* Favori Butonunu Buraya Ekliyoruz */}
-  <FavoriteButton product={product} />
-</div>
+              <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+  {product.name}
+</h1>
               <p className="mt-4 text-3xl tracking-tight text-gray-900">
                 {typeof product.price === "number"
                   ? product.price.toLocaleString("tr-TR", {
@@ -237,9 +233,16 @@ export default function ProductPage() {
 
               <div className="mt-6 text-base text-gray-700 space-y-4" dangerouslySetInnerHTML={{ __html: product.description || "" }} />
 
-              <div className="mt-10">
-                <AddToCartButton productId={product.id} />
-              </div>
+              <div className="mt-10 flex items-stretch gap-3">
+  <div className="flex-1">
+    <AddToCartButton productId={product.id} />
+  </div>
+  <FavoriteButton
+    product={product}
+    size={28}
+    className="bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md px-4 flex items-center"
+  />
+</div>
 
               {product.specifications &&
                 Object.keys(product.specifications).length > 0 && (

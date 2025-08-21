@@ -11,11 +11,11 @@ import clsx from 'clsx';
 
 interface FavoriteButtonProps {
   product: Product;
-  // Bileşenin farklı yerlerde farklı stiller alabilmesi için className prop'u ekliyoruz
   className?: string;
+  size?: number; // YENİ: Butonun ikon boyutunu dinamik hale getirmek için eklendi
 }
 
-export default function FavoriteButton({ product, className }: FavoriteButtonProps) {
+export default function FavoriteButton({ product, className, size = 28 }: FavoriteButtonProps) {
   const { isFavorite, toggleFavoriteStatus } = useFavorites();
   const { user } = useAuth();
   const router = useRouter();
@@ -47,13 +47,13 @@ export default function FavoriteButton({ product, className }: FavoriteButtonPro
       onClick={handleFavoriteClick}
       onAnimationEnd={handleAnimationEnd}
       className={clsx(
-        "p-2 rounded-full transition-transform active:scale-90 z-10", // Temel stiller
-        className // Dışarıdan gelen ek stiller
+        "p-2 rounded-full transition-transform active:scale-90 z-10",
+        className
       )}
       aria-label={isFavorited ? 'Favorilerden çıkar' : 'Favorilere ekle'}
     >
       <Heart
-        size={22} // İkonu biraz büyüttük
+        size={size} // YENİ: Boyut artık dışarıdan gelen prop ile belirleniyor
         className={clsx('text-gray-700 transition-colors', {
           'fill-red-500 text-red-500': isFavorited,
           'animate-heartbeat': isAnimating,

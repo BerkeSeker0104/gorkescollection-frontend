@@ -80,12 +80,12 @@ const ProductCard = ({ product }: ProductCardProps) => {
         )}
 
         {/* Favori butonu (YENİ BİLEŞEN KULLANILIYOR) */}
-        <div className="absolute top-3 right-3">
-          <FavoriteButton
-            product={product}
-            className="bg-white/70 backdrop-blur-sm lg:opacity-0 group-hover:opacity-100"
-          />
-        </div>
+<div className="absolute top-3 right-3 z-20"> {/* z-20 eklendi */}
+  <FavoriteButton
+    product={product}
+    className="bg-white/70 backdrop-blur-sm lg:opacity-0 group-hover:opacity-100"
+  />
+</div>
 
         {/* Sepete Ekle - Desktop */}
         <button
