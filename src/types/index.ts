@@ -154,3 +154,11 @@ export interface ResetPasswordData {
   newPassword: string;
   confirmNewPassword: string;
 }
+
+export interface Review {
+  id: number;
+  rating: number;
+  comment?: string;
+  createdAtUtc: string;
+  authorUsername: string;
+}

@@ -15,6 +15,7 @@ import {
   ChangePasswordData,
   ForgotPasswordData, 
   ResetPasswordData,
+  Review,
 } from '@/types';
 import Cookies from 'js-cookie';
 
@@ -24,6 +25,40 @@ const getToken = () => Cookies.get('token');
 /* ------------------------------------------------------------------------- */
 /* HERKESE AÇIK FONKSİYONLAR                                                */
 /* ------------------------------------------------------------------------- */
+
+export const postReview = async (productId: string, data: { rating: number; comment?: string }): Promise<Review | null> => {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/${productId}/reviews`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+    // Giriş yapmış kullanıcının cookie'sini isteğe dahil etmek için credentials: 'include' kullanılır [cite: 716]
+    credentials: 'include', 
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json();
+    // Backend'den gelen spesifik hata mesajını fırlatıyoruz
+    throw new Error(errorData.message || 'Yorum gönderilemedi.');
+  }
+  return res.json();
+};
+
+
+export const getReviewsForProduct = async (productId: string): Promise<Review[]> => {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/${productId}/reviews`);
+    if (!res.ok) {
+      console.error("Yorumlar çekilemedi.");
+      return [];
+    }
+    return await res.json();
+  } catch (error) {
+    console.error("Yorumları çekerken hata:", error);
+    return [];
+  }
+};
 
 
 export async function initiatePaytrPayment(
@@ -59,7 +94,7 @@ export async function initiatePaytrPayment(
 }
 
 
-// api.ts
+
 export const getProducts = async (
   sortBy?: string,
   categorySlug?: string
