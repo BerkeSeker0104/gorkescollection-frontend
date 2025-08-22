@@ -194,18 +194,16 @@ export const updateAddress = async (address: Address): Promise<boolean> => {
   try {
     const res = await fetch(`${API_URL}/api/account/addresses/${address.id}`, {
       method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(address),
     });
     return res.ok;
-  } catch (error) {
-    console.error('Adres güncellenirken ağ hatası:', error);
+  } catch (e) {
+    console.error('Adres güncelle hatası:', e);
     return false;
   }
 };
+
 
 
 export const deleteAddress = async (addressId: number): Promise<boolean> => {
