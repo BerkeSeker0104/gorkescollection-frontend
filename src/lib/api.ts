@@ -190,7 +190,7 @@ export const addAddress = async (address: ShippingAddress): Promise<Address | nu
 
 export const updateAddress = async (address: Address): Promise<boolean> => {
   const token = getToken();
-  if (!token) return false;
+  if (!token || !address?.id) return false;
   try {
     const res = await fetch(`${API_URL}/api/account/addresses/${address.id}`, {
       method: 'PUT',
@@ -206,6 +206,7 @@ export const updateAddress = async (address: Address): Promise<boolean> => {
     return false;
   }
 };
+
 
 export const deleteAddress = async (addressId: number): Promise<boolean> => {
   const token = getToken();

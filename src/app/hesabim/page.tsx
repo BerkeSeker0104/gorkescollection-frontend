@@ -360,11 +360,16 @@ const AddressManager = () => {
           <div className="flex gap-4 pt-2">
             {/* Doğrudan submit → RHF handleSubmit tetiklenir */}
             <button
-              type="submit"
-              onClick={handleSubmit(onSubmit)}
-              disabled={isSubmitting} // <-- sadece submit anında kilitle
-              className={`${buttonPrimaryStyle} relative z-[200]`}
-            >
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSubmit(onSubmit)();
+                  }}
+                  disabled={isSubmitting}
+                  className={`${buttonPrimaryStyle}`}
+                  style={{ position: 'relative', zIndex: 2147483647, pointerEvents: 'auto' }}
+                >
               {isSubmitting ? "Kaydediliyor..." : "Adresi Kaydet"}
             </button>
             <button type="button" onClick={handleCancel} className={buttonSecondaryStyle}>
