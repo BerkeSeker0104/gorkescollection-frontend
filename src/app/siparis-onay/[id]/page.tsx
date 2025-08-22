@@ -2,17 +2,16 @@
 
 import OrderConfirmationClient from "./OrderConfirmationClient";
 
-// Bu dosya bir Sunucu Bileşeni (Server Component) olarak kalır.
-// Yeni görevi, client-side mantığı içeren OrderConfirmationClient'i çağırmak
-// ve sunucudan aldığı parametreleri (sipariş id'si gibi) ona aktarmaktır.
-export default async function OrderConfirmationPage({
-  params,
-}: {
+// Props'lar için daha standart bir tip tanımı yapıyoruz.
+// Bu, Vercel'in derleme motorunun tipleri doğru anlamasını sağlar.
+type Props = {
   params: { id: string };
-}) {
+};
+
+// Component'in props'larını bu yeni 'Props' tipini kullanarak tanımlıyoruz.
+export default async function OrderConfirmationPage({ params }: Props) {
   const { id } = params;
 
   // Client Component'i, gerekli prop'ları (orderId) geçirerek render ediyoruz.
-  // Sepeti temizleme gibi tüm client-side işlemler OrderConfirmationClient içinde gerçekleşecek.
   return <OrderConfirmationClient orderId={id} />;
 }
