@@ -7,11 +7,14 @@ import { Edit, Trash2 } from 'lucide-react';
 
 import { getAddresses, addAddress, updateAddress, deleteAddress } from '@/lib/api';
 import type { Address, ShippingAddress } from '@/types';
-import { addressSchema } from "../../lib/validation";
+import { addressSchema } from '../../lib/validation';
 
-const inputStyle = "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#A58E74] focus:ring-[#A58E74] p-2 text-sm";
-const buttonPrimaryStyle = "bg-[#2a2a2a] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-opacity-90 disabled:bg-zinc-400 transition-colors";
-const buttonSecondaryStyle = "bg-zinc-200 text-zinc-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-zinc-300 transition-colors";
+const inputStyle =
+  'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#A58E74] focus:ring-[#A58E74] p-2 text-sm';
+const buttonPrimaryStyle =
+  'bg-[#2a2a2a] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-opacity-90 disabled:bg-zinc-400 transition-colors';
+const buttonSecondaryStyle =
+  'bg-zinc-200 text-zinc-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-zinc-300 transition-colors';
 
 // +90 / 0 / boşluk / tire vs. temizleyip son 10 haneyi bırak
 function normalizeTRPhone(input?: string) {
@@ -35,7 +38,15 @@ export default function AddressManager() {
     formState: { errors, isSubmitting },
   } = useForm<ShippingAddress>({
     resolver: zodResolver(addressSchema),
-    defaultValues: { country: 'Türkiye', fullName: '', phoneNumber: '', address1: '', city: '', district: '', postalCode: '' },
+    defaultValues: {
+      country: 'Türkiye',
+      fullName: '',
+      phoneNumber: '',
+      address1: '',
+      city: '',
+      district: '',
+      postalCode: '',
+    },
   });
 
   const fetchAddresses = async () => {
@@ -51,9 +62,20 @@ export default function AddressManager() {
 
   useEffect(() => {
     if (editingAddress) {
-      reset({ ...editingAddress, phoneNumber: normalizeTRPhone(editingAddress.phoneNumber) });
+      reset({
+        ...editingAddress,
+        phoneNumber: normalizeTRPhone(editingAddress.phoneNumber),
+      });
     } else {
-      reset({ country: 'Türkiye', fullName: '', phoneNumber: '', address1: '', city: '', district: '', postalCode: '' });
+      reset({
+        country: 'Türkiye',
+        fullName: '',
+        phoneNumber: '',
+        address1: '',
+        city: '',
+        district: '',
+        postalCode: '',
+      });
     }
   }, [editingAddress, reset]);
 
@@ -72,7 +94,15 @@ export default function AddressManager() {
   const handleCancel = () => {
     setShowForm(false);
     setEditingAddress(null);
-    reset({ country: 'Türkiye', fullName: '', phoneNumber: '', address1: '', city: '', district: '', postalCode: '' });
+    reset({
+      country: 'Türkiye',
+      fullName: '',
+      phoneNumber: '',
+      address1: '',
+      city: '',
+      district: '',
+      postalCode: '',
+    });
   };
 
   const onSubmit = async (data: ShippingAddress) => {
@@ -81,7 +111,6 @@ export default function AddressManager() {
 
     let success = false;
     if (editingAddress) {
-      // api.ts --> updateAddress(path: /api/account/addresses/${id}) yaptınız ✅
       success = await updateAddress({ ...editingAddress, ...payload });
     } else {
       const created = await addAddress(payload);
@@ -117,7 +146,7 @@ export default function AddressManager() {
 
       {showForm && (
         <form
-          onSubmit={handleSubmit(onSubmit)} // Enter ile çalışsın
+          onSubmit={handleSubmit(onSubmit)}
           noValidate
           className="space-y-4 bg-zinc-50 p-6 rounded-lg mb-8 border border-gray-200"
           style={{ position: 'relative', zIndex: 50, pointerEvents: 'auto' }}
@@ -126,6 +155,7 @@ export default function AddressManager() {
             {editingAddress ? 'Adresi Düzenle' : 'Yeni Adres Bilgileri'}
           </h3>
 
+          {/* inputlar */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-zinc-700">Ad Soyad</label>
@@ -175,18 +205,13 @@ export default function AddressManager() {
             {errors.postalCode && <p className="mt-1 text-xs text-red-500">{errors.postalCode.message}</p>}
           </div>
 
+          {/* Butonlar */}
           <div className="flex gap-4 pt-2">
-            {/* RHF'yi doğrudan tetikle, isDirty kilidi YOK */}
-            <button
-              type="button"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleSubmit(onSubmit)(); }}
-              disabled={isSubmitting}
-              className={buttonPrimaryStyle}
-            >
+            <button type="submit" disabled={isSubmitting} className={buttonPrimaryStyle}>
               {isSubmitting ? 'Kaydediliyor...' : 'Adresi Kaydet'}
             </button>
 
-            <button type="button" onClick={() => handleCancel()} className={buttonSecondaryStyle}>
+            <button type="button" onClick={handleCancel} className={buttonSecondaryStyle}>
               İptal
             </button>
           </div>
@@ -196,7 +221,10 @@ export default function AddressManager() {
       <div className="space-y-4">
         {addresses.length > 0 ? (
           addresses.map((address) => (
-            <div key={address.id} className="border border-gray-200 p-4 rounded-md bg-white flex justify-between items-start hover:shadow-sm transition-shadow">
+            <div
+              key={address.id}
+              className="border border-gray-200 p-4 rounded-md bg-white flex justify-between items-start hover:shadow-sm transition-shadow"
+            >
               <div>
                 <p className="font-bold text-zinc-800">{address.fullName}</p>
                 <p className="text-sm text-zinc-600">{address.phoneNumber}</p>
@@ -206,10 +234,18 @@ export default function AddressManager() {
                 </p>
               </div>
               <div className="flex gap-3 mt-1">
-                <button type="button" onClick={() => handleEditClick(address)} className="text-zinc-500 hover:text-[#A58E74]">
+                <button
+                  type="button"
+                  onClick={() => handleEditClick(address)}
+                  className="text-zinc-500 hover:text-[#A58E74]"
+                >
                   <Edit size={16} />
                 </button>
-                <button type="button" onClick={() => handleDeleteClick(address.id)} className="text-zinc-500 hover:text-red-600">
+                <button
+                  type="button"
+                  onClick={() => handleDeleteClick(address.id)}
+                  className="text-zinc-500 hover:text-red-600"
+                >
                   <Trash2 size={16} />
                 </button>
               </div>
