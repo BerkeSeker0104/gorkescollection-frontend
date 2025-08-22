@@ -170,14 +170,14 @@ const AddressManager = () => {
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
 
   const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<ShippingAddress>({
-    resolver: zodResolver(addressSchema),
-    defaultValues: { country: "Türkiye", phoneNumber: "" },
-  });
+  register,
+  handleSubmit,
+  reset,
+  formState: { errors, isSubmitting, isDirty }, // isDirty'yi buraya ekleyin
+} = useForm<ShippingAddress>({
+  resolver: zodResolver(addressSchema),
+  defaultValues: { country: "Türkiye", fullName: "", phoneNumber: "", address1: "", city: "", district: "", postalCode: "" },
+});
 
   const fetchAddresses = async () => {
     setLoading(true);
@@ -190,9 +190,16 @@ const AddressManager = () => {
     fetchAddresses();
   }, []);
 
+  useEffect(() => {
+    if (editingAddress) {
+      reset({ ...editingAddress, phoneNumber: normalizeTRPhone(editingAddress.phoneNumber) });
+    } else {
+      reset({ country: "Türkiye", fullName: "", phoneNumber: "", address1: "", city: "", district: "", postalCode: "" });
+    }
+  }, [editingAddress, reset]);
+
   const handleEditClick = (address: Address) => {
     setEditingAddress(address);
-    reset({ ...address, phoneNumber: normalizeTRPhone(address.phoneNumber) });
     setShowForm(true);
   };
 
@@ -353,7 +360,7 @@ const AddressManager = () => {
             {/* Doğrudan submit → RHF handleSubmit tetiklenir */}
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={!isDirty || isSubmitting} // <--- DEĞİŞİKLİK BURADA
               className={`${buttonPrimaryStyle} relative z-[200]`}
             >
               {isSubmitting ? "Kaydediliyor..." : "Adresi Kaydet"}

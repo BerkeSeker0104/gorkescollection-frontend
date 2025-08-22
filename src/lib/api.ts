@@ -192,7 +192,7 @@ export const updateAddress = async (address: Address): Promise<boolean> => {
   const token = getToken();
   if (!token) return false;
   try {
-    const res = await fetch(`${API_URL}/api/account/addresses`, {
+    const res = await fetch(`${API_URL}/api/account/addresses/${address.id}`, {
       method: 'PUT',
       headers: {
         Authorization: `Bearer ${token}`,
