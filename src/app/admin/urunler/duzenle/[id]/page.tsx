@@ -6,6 +6,7 @@ import { AdminProductDto, Category, Product } from "@/types";
 import { getCategories, getProductById, updateProduct } from "@/lib/api";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import SubscriberList from "@/components/admin/SubscriberList";
 
 export default function EditProductPage() {
   const params = useParams<{ id: string }>();
@@ -112,6 +113,7 @@ export default function EditProductPage() {
     }, {} as Record<string, string>);
 
     const payload: AdminProductDto = {
+      id: productId,
       name: data.name,
       description: data.description,
       price: data.price,
@@ -156,6 +158,10 @@ export default function EditProductPage() {
           categories={categories}
           onSubmit={handleUpdateProduct}
         />
+
+        {/* --- YENİ EKLENEN BÖLÜM --- */}
+        <SubscriberList productId={productId} />
+        
       </div>
     </div>
   );

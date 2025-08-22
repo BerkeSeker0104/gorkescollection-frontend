@@ -106,6 +106,7 @@ export interface Address {
 }
 
 export interface AdminProductDto {
+  id: number;
   name: string;
   description: string;
   price: number;
@@ -161,4 +162,9 @@ export interface Review {
   comment?: string;
   createdAtUtc: string;
   authorUsername: string;
+}
+
+export interface StockNotificationSubscriber {
+  userEmail: string;
+  requestDate: string; // ISO date string
 }

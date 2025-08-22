@@ -19,6 +19,10 @@ import { useParams } from "next/navigation";
 import useEmblaCarousel from "embla-carousel-react";
 import FavoriteButton from "@/components/FavoriteButton";
 import Autoplay from "embla-carousel-autoplay";
+import StockNotificationButton from '@/components/StockNotificationButton';
+
+
+
 
 const PLACEHOLDER = "/placeholder.png";
 
@@ -300,7 +304,13 @@ export default function ProductPage() {
 
               <div className="mt-10 flex items-stretch gap-3">
                 <div className="flex-1">
-                  <AddToCartButton productId={product.id} />
+                  {/* --- YENİ KOŞULLU MANTIK --- */}
+                  {product.stockQuantity > 0 ? (
+                    <AddToCartButton productId={product.id} />
+                  ) : (
+                    <StockNotificationButton productId={product.id} />
+                  )}
+                  {/* --- MANTIK SONU --- */}
                 </div>
                 <FavoriteButton
                   product={product}

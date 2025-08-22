@@ -16,6 +16,7 @@ import {
   ForgotPasswordData, 
   ResetPasswordData,
   Review,
+  StockNotificationSubscriber,
 } from '@/types';
 import Cookies from 'js-cookie';
 
@@ -41,6 +42,51 @@ const getAuthHeaders = (): HeadersInit => {
 /* ------------------------------------------------------------------------- */
 /* HERKESE AÇIK FONKSİYONLAR                                                */
 /* ------------------------------------------------------------------------- */
+
+export const getStockNotificationSubscribers = async (
+  productId: number
+): Promise<StockNotificationSubscriber[]> => {
+  
+  try {
+    const res = await fetch(`${API_URL}/api/admin/notifications/${productId}`, {
+      headers: getAuthHeaders(), // <--- DEĞİŞİKLİK BURADA
+      cache: 'no-store' // Admin verisi olduğu için önbelleğe almamak en iyisi
+    });
+
+    if (!res.ok) {
+      console.error("Aboneler çekilirken hata oluştu:", res.statusText);
+      return [];
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("Aboneler çekilirken bir ağ hatası oluştu:", error);
+    return [];
+  }
+};
+
+export const subscribeToStockNotification = async (
+  productId: number,
+  email: string
+): Promise<{ success: boolean; message: string }> => {
+  
+  const res = await fetch(`${API_URL}/api/notifications/subscribe`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ productId, email }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    // Backend'den gelen hata mesajını kullan, yoksa genel bir mesaj göster
+    return { success: false, message: data.message || "Bir hata oluştu." };
+  }
+
+  return { success: true, message: data.message || "İsteğiniz başarıyla alındı." };
+};
 
 export const postReview = async (productId: string, data: { rating: number; comment?: string }): Promise<Review | null> => {
   const res = await fetch(`${API_URL}/api/products/${productId}/reviews`, {
