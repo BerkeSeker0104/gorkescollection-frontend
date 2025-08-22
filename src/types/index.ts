@@ -106,7 +106,7 @@ export interface Address {
 }
 
 export interface AdminProductDto {
-  id: number;
+  id?: number;
   name: string;
   description: string;
   price: number;
