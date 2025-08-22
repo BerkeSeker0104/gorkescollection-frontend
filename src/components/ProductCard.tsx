@@ -25,10 +25,16 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const { addItem } = useCart();
 
   // ---- fiyat mantığı ----
+  // priceOriginal/priceFinal 0 gelirse düşmeyelim → > 0 kontrolü ekle
   const base =
-    typeof product.priceOriginal === 'number' ? product.priceOriginal : product.price;
+    typeof product.priceOriginal === 'number' && product.priceOriginal > 0
+      ? product.priceOriginal
+      : (typeof product.price === 'number' ? product.price : 0);
+
   const final =
-    product.isOnSaleNow && typeof product.priceFinal === 'number'
+    product.isOnSaleNow &&
+    typeof product.priceFinal === 'number' &&
+    product.priceFinal > 0
       ? product.priceFinal
       : base;
   const hasDiscount = Boolean(product.isOnSaleNow && final < base);
