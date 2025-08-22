@@ -360,6 +360,7 @@ const AddressManager = () => {
             {/* Doğrudan submit → RHF handleSubmit tetiklenir */}
             <button
               type="submit"
+              onClick={handleSubmit(onSubmit)}
               disabled={!isDirty || isSubmitting} // <--- DEĞİŞİKLİK BURADA
               className={`${buttonPrimaryStyle} relative z-[200]`}
             >
