@@ -361,7 +361,7 @@ const AddressManager = () => {
             <button
               type="submit"
               onClick={handleSubmit(onSubmit)}
-              disabled={!isDirty || isSubmitting} // <--- DEĞİŞİKLİK BURADA
+              disabled={isSubmitting} // <-- sadece submit anında kilitle
               className={`${buttonPrimaryStyle} relative z-[200]`}
             >
               {isSubmitting ? "Kaydediliyor..." : "Adresi Kaydet"}
