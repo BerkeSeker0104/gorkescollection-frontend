@@ -1,16 +1,19 @@
+// src/context/CartContext.tsx
+
 'use client';
 
 import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { CartDto } from '@/types';
 import { addToCart, getCart, removeFromCart } from '@/lib/api';
 
+// 1. Arayüze (interface) refreshCart eklendi
 interface CartContextType {
   cart: CartDto | null;
   setCart: (cart: CartDto | null) => void;
-  // Fonksiyon isimlerini daha anlaşılır hale getiriyoruz
-  addItem: (productId: number) => Promise<void>;      // Miktarı 1 artırır
-  decreaseItem: (productId: number) => Promise<void>; // Miktarı 1 azaltır
-  removeItem: (productId: number) => Promise<void>;   // Ürünü tamamen kaldırır
+  addItem: (productId: number) => Promise<void>;
+  decreaseItem: (productId: number) => Promise<void>;
+  removeItem: (productId: number) => Promise<void>;
+  refreshCart: () => Promise<void>; // Sepeti backend'den tazelemek için
   loading: boolean;
 }
 
@@ -28,12 +31,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartDto | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // 2. fetchCart fonksiyonu useEffect dışına taşındı
+  //    Böylece hem başlangıçta hem de ihtiyaç anında çağırılabilir.
+  async function fetchCart() {
+    setLoading(true);
+    const fetchedCart = await getCart();
+    setCart(fetchedCart);
+    setLoading(false);
+  }
+
   useEffect(() => {
-    async function fetchCart() {
-      const fetchedCart = await getCart();
-      setCart(fetchedCart);
-      setLoading(false);
-    }
+    // Component ilk yüklendiğinde sepeti bir kez çek
     fetchCart();
   }, []);
 
@@ -62,16 +70,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (!item) return;
 
     setLoading(true);
-    // Backend'deki RemoveItem metodu, miktar 0 veya daha az olunca ürünü siliyordu.
-    // Bu yüzden mevcut miktarın tamamını gönderiyoruz.
     const updatedCart = await removeFromCart(productId, item.quantity);
     setCart(updatedCart);
     setLoading(false);
   };
 
+  // 3. Yeni refreshCart fonksiyonu tanımlandı
+  const refreshCart = async () => {
+    await fetchCart();
+  };
 
+  // 4. Provider'ın value prop'una refreshCart eklendi
   return (
-    <CartContext.Provider value={{ cart, setCart, addItem, decreaseItem, removeItem, loading }}>
+    <CartContext.Provider value={{ cart, setCart, addItem, decreaseItem, removeItem, refreshCart, loading }}>
       {children}
     </CartContext.Provider>
   );
