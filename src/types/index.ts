@@ -33,19 +33,15 @@ export interface CartItemDto {
   quantity: number;
 }
 
-// --- GÜNCELLENEN BÖLÜM ---
 export interface CartDto {
   id: number;
   buyerId: string;
   items: CartItemDto[];
-  
-  // Yeni eklenen alanlar
   subtotal: number;
   discountAmount: number;
   total: number;
   appliedCouponCode?: string;
 }
-// --- GÜNCELLEME SONU ---
 
 export interface ShippingAddress {
   fullName: string;
@@ -168,4 +164,16 @@ export interface Review {
 export interface StockNotificationSubscriber {
   userEmail: string;
   requestDate: string; // ISO date string
+}
+
+// --- YENİ EKLENEN ARAYÜZ ---
+export interface Coupon {
+  id: number;
+  code: string;
+  discountType: 'Percentage' | 'Amount';
+  discountValue: number;
+  expiryDate?: string | null;
+  isActive: boolean;
+  usageLimit?: number | null;
+  timesUsed: number;
 }

@@ -17,6 +17,7 @@ import {
   ResetPasswordData,
   Review,
   StockNotificationSubscriber,
+  Coupon,
 } from '@/types';
 import Cookies from 'js-cookie';
 
@@ -895,4 +896,56 @@ export const applyCoupon = async (couponCode: string): Promise<CartDto | null> =
     console.error('Kupon uygulanırken hata:', error);
     throw error; // Hatanın component tarafından yakalanabilmesi için tekrar fırlat
   }
+};
+
+// --- YENİ EKLENECEK KUPON YÖNETİMİ FONKSİYONLARI ---
+
+export const getCoupons = async (): Promise<Coupon[]> => {
+  try {
+    const res = await fetch(`${API_URL}/api/admin/coupons`, {
+      headers: getAuthHeaders(),
+      cache: 'no-store',
+    });
+    if (!res.ok) throw new Error('Kuponlar alınamadı.');
+    return res.json();
+  } catch (error) {
+    console.error('Kuponlar alınırken ağ hatası:', error);
+    return [];
+  }
+};
+
+// Yeni kupon oluştururken ID ve timesUsed göndermeyiz, bu yüzden Omit kullanıyoruz.
+export const createCoupon = async (couponData: Omit<Coupon, 'id' | 'timesUsed'>): Promise<Coupon> => {
+  const res = await fetch(`${API_URL}/api/admin/coupons`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(couponData),
+  });
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ message: 'Kupon oluşturulamadı.' }));
+    throw new Error(error.message || 'Bilinmeyen bir hata oluştu.');
+  }
+  return res.json();
+};
+
+export const updateCoupon = async (couponId: number, couponData: Coupon): Promise<Coupon> => {
+  const res = await fetch(`${API_URL}/api/admin/coupons/${couponId}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(couponData),
+  });
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ message: 'Kupon güncellenemedi.' }));
+    throw new Error(error.message || 'Bilinmeyen bir hata oluştu.');
+  }
+  // Backend NoContent (204) döneceği için güncellenmiş veriyi geri döndürüyoruz.
+  return couponData;
+};
+
+export const deleteCoupon = async (couponId: number): Promise<boolean> => {
+  const res = await fetch(`${API_URL}/api/admin/coupons/${couponId}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+  return res.ok;
 };

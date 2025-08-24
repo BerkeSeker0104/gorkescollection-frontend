@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Package, ShoppingCart, Users, Layers, Settings } from 'lucide-react'; // Settings ikonunu ekledik
+// Ticket ikonunu import ediyoruz
+import { Package, ShoppingCart, Users, Layers, Settings, Ticket } from 'lucide-react';
 import type { ElementType } from 'react';
 
 // DashboardCard'ın alacağı özelliklerin tiplerini tanımlıyoruz.
@@ -35,7 +36,7 @@ const DashboardCard = ({ title, description, link, icon: Icon }: DashboardCardPr
 
 export default function AdminDashboard() {
     return (
-        <div className="container mx-auto px-6 py-8">
+        <div>
             <h1 className="text-3xl font-bold text-gray-800 mb-2">Admin Paneli</h1>
             <p className="text-gray-600 mb-8">Nazar Duası - Euzu bi kelimatillâhi't-tâmmeti min kulli şeytanin ve hammetin ve min külli aynin lammeh - 
                 Bereket Duası - Allâhümmekfinî bi helâlike an harâmike, veğninî bi fadlike ammen sivâke.
@@ -60,19 +61,20 @@ export default function AdminDashboard() {
                     link="/admin/siparisler"
                     icon={ShoppingCart}
                 />
+                {/* --- YENİ EKLENEN KUPON KARTI --- */}
                 <DashboardCard 
-                    title="Müşteri Yönetimi"
-                    description="Kayıtlı kullanıcıları ve adres bilgilerini görüntüle."
-                    link="/admin/musteriler"
-                    icon={Users}
+                    title="Kupon Yönetimi"
+                    description="İndirim kuponları oluştur, kullanım limitlerini ve son kullanma tarihlerini yönet."
+                    link="/admin/kuponlar"
+                    icon={Ticket}
                 />
-                {/* YENİ EKLENEN KART: Mağaza Ayarları */}
                 <DashboardCard 
                     title="Mağaza Ayarları"
                     description="Kargo ücreti, ücretsiz kargo limiti gibi genel mağaza ayarlarını yönet."
                     link="/admin/ayarlar"
                     icon={Settings}
                 />
+                 {/* Müşteri Yönetimi kartı kaldırıldı veya başka bir yere taşındı varsayımıyla */}
             </div>
         </div>
     );
