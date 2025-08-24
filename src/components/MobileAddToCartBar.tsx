@@ -6,7 +6,7 @@ import StockNotificationButton from './StockNotificationButton';
 import Image from 'next/image'; // Image component'ini import ediyoruz
 
 // Bu component, ürün bilgilerini ve WhatsApp numarasını prop olarak alacak
-const MobileAddToCartBar = ({ product, phoneNumber }: { product: Product, phoneNumber: string }) => {
+const MobileAddToCartBar = ({ product, phoneNumber }: { product: Product, phoneNumber:string }) => {
   if (!product) {
     return null;
   }
@@ -16,10 +16,10 @@ const MobileAddToCartBar = ({ product, phoneNumber }: { product: Product, phoneN
   return (
     // md:hidden -> Sadece mobil (medium ekrandan küçük) cihazlarda görünür
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white p-3 border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.1)] z-40">
-      <div className="flex justify-between items-center gap-4">
+      <div className="flex justify-between items-center gap-3">
         
-        {/* Sol Taraf: Sadece Fiyat */}
-        <div>
+        {/* Sol Taraf: Fiyat */}
+        <div className="flex-shrink-0">
           <span className="text-xs text-gray-500">Fiyat</span>
           <p className="text-lg font-bold text-gray-900 leading-tight">
             {product.price.toLocaleString('tr-TR', {
@@ -29,29 +29,32 @@ const MobileAddToCartBar = ({ product, phoneNumber }: { product: Product, phoneN
           </p>
         </div>
 
-        {/* --- DEĞİŞTİRİLEN BÖLÜM --- */}
-        {/* Sağ Taraf: Ana Eylem Butonu ve WhatsApp ikonu bir arada */}
-        <div className="flex items-center gap-2">
-          <div className="flex-1">
+        {/* --- YENİ TASARIM --- */}
+        {/* Sağ Taraf: Genişletilmiş ana buton ve WhatsApp ikonu */}
+        <div className="flex-1 flex items-center justify-end gap-3">
+          {/* Ana Eylem Butonu (Genişletildi) */}
+          <div className="flex-1 max-w-xs">
             {product.stockQuantity > 0 ? (
               <AddToCartButton productId={product.id} />
             ) : (
               <StockNotificationButton productId={product.id} />
             )}
           </div>
+          
+          {/* WhatsApp İkon Butonu (Daha şık bir görünüm için) */}
           <a
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="WhatsApp üzerinden soru sorun"
-            className="flex-shrink-0 transition-transform transform hover:scale-110"
+            className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
           >
             <Image
               src="/whatsapp.png"
               alt="WhatsApp ile soru sor"
-              width={32}
-              height={32}
-              className="w-8 h-8"
+              width={28}
+              height={28}
+              className="w-7 h-7"
             />
           </a>
         </div>
