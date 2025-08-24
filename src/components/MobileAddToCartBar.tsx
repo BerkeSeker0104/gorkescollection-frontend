@@ -3,31 +3,45 @@
 import { Product } from '@/types';
 import AddToCartButton from './AddToCartButton';
 import StockNotificationButton from './StockNotificationButton';
+import { Phone } from 'lucide-react'; // Telefon ikonu için
 
-// Bu component, ürün bilgilerini prop olarak alacak
-const MobileAddToCartBar = ({ product }: { product: Product }) => {
-  // Eğer ürün bilgisi yoksa, hiçbir şey gösterme
+// Bu component, ürün bilgilerini ve WhatsApp numarasını prop olarak alacak
+const MobileAddToCartBar = ({ product, phoneNumber }: { product: Product, phoneNumber: string }) => {
   if (!product) {
     return null;
   }
 
+  const whatsappUrl = `https://wa.me/${phoneNumber}`;
+
   return (
     // md:hidden -> Sadece mobil (medium ekrandan küçük) cihazlarda görünür
-    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white p-4 border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.1)] z-40">
-      <div className="flex justify-between items-center gap-4">
-        {/* Sol Taraf: Fiyat */}
-        <div className="flex-shrink-0">
-          <p className="text-xl font-bold text-gray-900">
-            {/* Fiyatı formatlayarak gösteriyoruz */}
-            {product.price.toLocaleString('tr-TR', {
-              style: 'currency',
-              currency: 'TRY',
-            })}
-          </p>
+    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white p-3 border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.1)] z-40">
+      <div className="flex justify-between items-center gap-3">
+        
+        {/* Sol Taraf: Fiyat ve WhatsApp Butonu */}
+        <div className="flex items-center gap-3">
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="WhatsApp üzerinden soru sorun"
+            className="flex-shrink-0 bg-gray-100 text-gray-700 w-12 h-12 rounded-md flex items-center justify-center hover:bg-gray-200 transition-colors"
+          >
+            <Phone size={24} />
+          </a>
+          <div>
+            <span className="text-xs text-gray-500">Fiyat</span>
+            <p className="text-lg font-bold text-gray-900 leading-tight">
+              {product.price.toLocaleString('tr-TR', {
+                style: 'currency',
+                currency: 'TRY',
+              })}
+            </p>
+          </div>
         </div>
 
-        {/* Sağ Taraf: Buton (Stok durumuna göre) */}
-        <div className="flex-1">
+        {/* Sağ Taraf: Ana Eylem Butonu (Stok durumuna göre) */}
+        <div className="flex-1 max-w-[180px]">
           {product.stockQuantity > 0 ? (
             <AddToCartButton productId={product.id} />
           ) : (

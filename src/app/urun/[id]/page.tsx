@@ -39,6 +39,10 @@ export default function ProductPage() {
     align: "start",
   });
 
+  // --- 2. WHATSAPP NUMARASINI BURADA TANIMLAYIN ---
+  // Numara, ülke koduyla birlikte ve başında '+' olmadan yazılmalıdır.
+  const WHATSAPP_PHONE_NUMBER = '905308331705';
+
   useEffect(() => {
     if (!id) return;
     const getProductAndReviews = async (pid: string) => {
@@ -144,10 +148,9 @@ export default function ProductPage() {
 
   return (
     <>
-      {/* --- 3. YENİ MOBİL BAR'I VE BOŞLUĞU EKLEYİN --- */}
-      <MobileAddToCartBar product={product} />
+      {/* --- 3. YENİ MOBİL BAR'I GÜNCELLENMİŞ HALİYLE ÇAĞIRIN --- */}
+      <MobileAddToCartBar product={product} phoneNumber={WHATSAPP_PHONE_NUMBER} />
       
-      {/* Ana içerik alanı. Mobil için alttan boşluk eklendi (pb-24) */}
       <div className="bg-white pt-32 pb-24 md:pb-0">
         <div className="container mx-auto px-4 py-16 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-12">
@@ -222,7 +225,6 @@ export default function ProductPage() {
               </p>
               <div className="mt-6 text-base text-gray-700 space-y-4" dangerouslySetInnerHTML={{ __html: product.description || "" }} />
 
-              {/* --- 2. ORİJİNAL BUTONLARI MOBİLDE GİZLEYİN --- */}
               <div className="hidden md:flex mt-10 items-stretch gap-3">
                 <div className="flex-1">
                   {product.stockQuantity > 0 ? (

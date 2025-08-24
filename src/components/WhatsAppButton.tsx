@@ -2,18 +2,20 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation'; // Sayfa yolunu almak için gerekli hook
+import { usePathname } from 'next/navigation'; // Sayfa yolunu almak için
 
 const WhatsAppButton = ({ phoneNumber }: { phoneNumber: string }) => {
   const whatsappUrl = `https://wa.me/${phoneNumber}`;
-  const pathname = usePathname(); // Mevcut sayfanın URL yolunu alır (örn: "/urun/123")
+  const pathname = usePathname();
 
-  // Mevcut sayfanın bir ürün sayfası olup olmadığını kontrol et
+  // İkonun gizleneceği sayfaları kontrol et
   const isProductPage = pathname.startsWith('/urun/');
+  const isCartPage = pathname.startsWith('/sepet');
+  const isCheckoutPage = pathname.startsWith('/odeme');
 
-  // Ürün sayfasındaysak ikonun alttan mesafesini artır, değilse varsayılan mesafede kalsın.
-  // 'bottom-[95px]' değeri, "Sepete Ekle" barının yüksekliğine göre ayarlanmıştır.
-  const positionClass = isProductPage ? 'bottom-[95px]' : 'bottom-6';
+  // Eğer bu sayfalardan birindeysek, butonu mobil cihazlarda gizle
+  // md:fixed -> Sadece medium ve üzeri ekranlarda sabitlenir, mobilde gizlenir
+  const visibilityClass = (isProductPage || isCartPage || isCheckoutPage) ? 'hidden md:fixed' : 'fixed';
 
   return (
     <a
@@ -21,15 +23,14 @@ const WhatsAppButton = ({ phoneNumber }: { phoneNumber: string }) => {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="WhatsApp üzerinden iletişime geçin"
-      // `positionClass` değişkenini ve geçiş efekti için `transition-all`'u ekliyoruz
-      className={`fixed ${positionClass} right-6 z-50 transition-all duration-300 transform hover:scale-110`}
+      className={`${visibilityClass} bottom-6 right-6 z-50 transition-transform transform hover:scale-110`}
     >
-      {/* İkonun daha görünür olması için boyutu büyütüp gölge ekliyoruz */}
       <Image
         src="/whatsapp.png"
         alt="WhatsApp İletişim"
         width={32}
         height={32}
+        
       />
     </a>
   );
