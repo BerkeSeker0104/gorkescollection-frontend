@@ -121,6 +121,15 @@ export const getReviewsForProduct = async (productId: string): Promise<Review[]>
   }
 };
 
+export const deleteReview = async (reviewId: number): Promise<boolean> => {
+  const res = await fetch(`${API_URL}/api/reviews/${reviewId}`, {
+    method: 'DELETE',
+    headers: {
+      ...getAuthHeaders(), // Mevcut yetkilendirme yapınızı kullanır
+    },
+  });
+  return res.ok;
+};
 
 export async function initiatePaytrPayment(address: ShippingAddress, guestEmail?: string, preferredCarrier?: string) {
   const res = await fetch(`${API_URL}/api/payments/initiate-payment`, {

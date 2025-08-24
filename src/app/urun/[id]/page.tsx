@@ -15,8 +15,6 @@ import useEmblaCarousel from "embla-carousel-react";
 import FavoriteButton from "@/components/FavoriteButton";
 import Autoplay from "embla-carousel-autoplay";
 import StockNotificationButton from '@/components/StockNotificationButton';
-
-// --- 1. YENİ COMPONENT'İ IMPORT EDİN ---
 import MobileAddToCartBar from '@/components/MobileAddToCartBar';
 
 const PLACEHOLDER = "/placeholder.png";
@@ -39,8 +37,6 @@ export default function ProductPage() {
     align: "start",
   });
 
-  // --- 2. WHATSAPP NUMARASINI BURADA TANIMLAYIN ---
-  // Numara, ülke koduyla birlikte ve başında '+' olmadan yazılmalıdır.
   const WHATSAPP_PHONE_NUMBER = '905308331705';
 
   useEffect(() => {
@@ -80,6 +76,12 @@ export default function ProductPage() {
 
   const handleReviewSubmitted = (newReview: Review) => {
     setReviews((prev) => [newReview, ...prev]);
+  };
+
+  // --- 1. YENİ FONKSİYONU EKLEYİN ---
+  // Bu fonksiyon, ReviewList component'inden çağrılacak ve yorum listesini güncelleyecektir.
+  const handleReviewDeleted = (deletedReviewId: number) => {
+    setReviews((prev) => prev.filter(review => review.id !== deletedReviewId));
   };
 
   const images = useMemo(() => {
@@ -148,7 +150,6 @@ export default function ProductPage() {
 
   return (
     <>
-      {/* --- 3. YENİ MOBİL BAR'I GÜNCELLENMİŞ HALİYLE ÇAĞIRIN --- */}
       <MobileAddToCartBar product={product} phoneNumber={WHATSAPP_PHONE_NUMBER} />
       
       <div className="bg-white pt-32 pb-24 md:pb-0">
@@ -156,7 +157,6 @@ export default function ProductPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-12">
             {/* Sol: Görsel Galeri (Embla) */}
             <div>
-              {/* Ana slider */}
               <div className="relative">
                 <div className="overflow-hidden rounded-lg" ref={emblaRef}>
                   <div className="flex">
@@ -189,7 +189,6 @@ export default function ProductPage() {
                   </>
                 )}
               </div>
-              {/* Thumbnails */}
               {images.length > 1 && (
                 <div className="mt-4">
                   <div className="overflow-hidden" ref={thumbRef}>
@@ -267,7 +266,10 @@ export default function ProductPage() {
               </div>
               <div className="lg:col-span-2">
                 <h3 className="text-lg font-medium text-gray-900">Müşteri Yorumları ({reviewSummary.count})</h3>
-                <div className="mt-4"><ReviewList reviews={reviews} /></div>
+                <div className="mt-4">
+                  {/* --- 3. REVIEWLIST'İ GÜNCELLEYİN --- */}
+                  <ReviewList reviews={reviews} onReviewDeleted={handleReviewDeleted} />
+                </div>
               </div>
             </div>
           </div>
