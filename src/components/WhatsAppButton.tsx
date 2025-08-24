@@ -20,8 +20,8 @@ const WhatsAppButton = ({ phoneNumber }: { phoneNumber: string }) => {
       <Image
         src="/whatsapp.png" // Dosya adı güncellendi
         alt="WhatsApp İletişim"
-        width={32} // İkonun genişliği artırıldı (eski buton boyutu)
-        height={32} // İkonun yüksekliği artırıldı (eski buton boyutu)
+        width={64} // İkonun genişliği artırıldı (eski buton boyutu)
+        height={64} // İkonun yüksekliği artırıldı (eski buton boyutu)
         
       />
     </a>
