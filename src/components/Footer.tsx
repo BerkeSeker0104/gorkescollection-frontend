@@ -1,24 +1,5 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Instagram, Facebook } from 'lucide-react';
-
-// TikTok ikonu için özel SVG bileşeni
-const TiktokIcon = ({ size = 24, className = "" }) => (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M16 8.11V4h-5v12.55a4.5 4.5 0 1 1-5.03-5.45A4.5 4.5 0 1 1 16 9.55Z" />
-    </svg>
-);
 
 const Footer = () => {
   return (
@@ -89,23 +70,30 @@ const Footer = () => {
               <Image 
                 src="/images/paytr/tekparca-logolar-1.jpg"
                 alt="Visa, Mastercard, Troy ile güvenli ödeme"
-                width={150}
-                height={25}
+                width={200}  // Genişlik artırıldı
+                height={33}  // Oranı korumak için yükseklik de artırıldı
                 className="h-auto"
               />
             </div>
           </div>
 
-          {/* Sağ Taraf: Sosyal Medya */}
-          <div className="flex space-x-6">
-            <a href="https://www.instagram.com/gorkescollection/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-800">
-              <Instagram size={20} />
+          {/* Sağ Taraf: Sosyal Medya (Yeni ikonlarla) */}
+          <div className="flex space-x-4">
+            <a href="https://www.instagram.com/gorkescollection/" target="_blank" rel="noopener noreferrer" className="opacity-70 hover:opacity-100 transition-opacity">
+              <Image 
+                src="/images/social-media/instagram.png"
+                alt="Instagram"
+                width={28}
+                height={28}
+              />
             </a>
-            <a href="#" className="text-gray-400 hover:text-gray-800">
-              <Facebook size={20} />
-            </a>
-            <a href="#" className="text-gray-400 hover:text-gray-800">
-              <TiktokIcon size={20} />
+            <a href="#" className="opacity-70 hover:opacity-100 transition-opacity">
+              <Image 
+                src="/images/social-media/tiktok.png"
+                alt="TikTok"
+                width={28}
+                height={28}
+              />
             </a>
           </div>
         </div>
