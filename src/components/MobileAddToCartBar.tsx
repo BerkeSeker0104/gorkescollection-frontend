@@ -3,7 +3,7 @@
 import { Product } from '@/types';
 import AddToCartButton from './AddToCartButton';
 import StockNotificationButton from './StockNotificationButton';
-import { Phone } from 'lucide-react'; // Telefon ikonu için
+import Image from 'next/image'; // Image component'ini import ediyoruz
 
 // Bu component, ürün bilgilerini ve WhatsApp numarasını prop olarak alacak
 const MobileAddToCartBar = ({ product, phoneNumber }: { product: Product, phoneNumber: string }) => {
@@ -19,15 +19,22 @@ const MobileAddToCartBar = ({ product, phoneNumber }: { product: Product, phoneN
       <div className="flex justify-between items-center gap-3">
         
         {/* Sol Taraf: Fiyat ve WhatsApp Butonu */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
+          {/* --- DEĞİŞİKLİK BURADA --- */}
           <a
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="WhatsApp üzerinden soru sorun"
-            className="flex-shrink-0 bg-gray-100 text-gray-700 w-12 h-12 rounded-md flex items-center justify-center hover:bg-gray-200 transition-colors"
+            className="flex-shrink-0 transition-transform transform hover:scale-110"
           >
-            <Phone size={24} />
+            <Image
+              src="/whatsapp.png"
+              alt="WhatsApp ile soru sor"
+              width={48}
+              height={48}
+              className="w-12 h-12"
+            />
           </a>
           <div>
             <span className="text-xs text-gray-500">Fiyat</span>
