@@ -33,7 +33,7 @@ const MobileAddToCartBar = ({ product, phoneNumber }: { product: Product, phoneN
               alt="WhatsApp ile soru sor"
               width={24}
               height={24}
-              className="w-12 h-12"
+              className="w-10 h-10"
             />
           </a>
           <div>
