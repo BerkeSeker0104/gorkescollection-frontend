@@ -70,8 +70,8 @@ const Footer = () => {
               <Image 
                 src="/images/paytr/tekparca-logolar-1.jpg"
                 alt="Visa, Mastercard, Troy ile güvenli ödeme"
-                width={300}  // Genişlik artırıldı
-                height={63}  // Oranı korumak için yükseklik de artırıldı
+                width={400}  // Genişlik artırıldı
+                height={83}  // Oranı korumak için yükseklik de artırıldı
                 className="h-auto"
               />
             </div>
