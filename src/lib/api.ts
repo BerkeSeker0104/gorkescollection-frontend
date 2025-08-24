@@ -873,3 +873,26 @@ export const createShipment = async (
   }
 };
 
+export const applyCoupon = async (couponCode: string): Promise<CartDto | null> => {
+  try {
+    const res = await fetch(`${API_URL}/api/cart/apply-coupon`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({ couponCode }),
+    });
+
+    if (!res.ok) {
+      // Hata durumunda backend'den gelen mesajı yakala ve fırlat
+      const errorData = await res.json();
+      throw new Error(errorData.message || 'Geçersiz kupon kodu.');
+    }
+    
+    return res.json();
+  } catch (error) {
+    console.error('Kupon uygulanırken hata:', error);
+    throw error; // Hatanın component tarafından yakalanabilmesi için tekrar fırlat
+  }
+};

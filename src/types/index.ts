@@ -2,19 +2,14 @@ export interface Product {
   id: number;
   name: string;
   description: string;
-
-  // Eski alan (geriye dönük): bazı endpointler sadece price döndürüyor olabilir
   price: number;
-
-  // İndirim sistemi (backend’le uyumlu) — bazı endpointlerde gelmeyebilir diye ? koyduk
-  priceOriginal?: number;       // indirimsiz fiyat
-  priceFinal?: number;          // indirimli fiyat
-  isOnSaleNow?: boolean;        // şu an indirim aktif mi
-  discountPercent?: number;     // yüzde (0–100)
-  saleLabel?: string | null;    // rozet yazısı (örn. “Sezona Özel %10”)
-  saleStartUtc?: string | null; // ISO datetime
+  priceOriginal?: number;
+  priceFinal?: number;
+  isOnSaleNow?: boolean;
+  discountPercent?: number;
+  saleLabel?: string | null;
+  saleStartUtc?: string | null;
   saleEndUtc?: string | null;
-
   stockQuantity: number;
   categoryName: string;
   categoryId: number;
@@ -38,11 +33,19 @@ export interface CartItemDto {
   quantity: number;
 }
 
+// --- GÜNCELLENEN BÖLÜM ---
 export interface CartDto {
   id: number;
   buyerId: string;
   items: CartItemDto[];
+  
+  // Yeni eklenen alanlar
+  subtotal: number;
+  discountAmount: number;
+  total: number;
+  appliedCouponCode?: string;
 }
+// --- GÜNCELLEME SONU ---
 
 export interface ShippingAddress {
   fullName: string;
@@ -115,12 +118,10 @@ export interface AdminProductDto {
   imageUrls: string[];
   specifications: Record<string, string>;
   isFeatured: boolean;
-
-  // İndirim alanları — opsiyonel
   saleType?: 'percentage' | 'amount' | null;
   saleValue?: number | null;
-  saleStartUtc?: string | null; // ISO
-  saleEndUtc?: string | null;   // ISO
+  saleStartUtc?: string | null;
+  saleEndUtc?: string | null;
   saleLabel?: string | null;
 }
 

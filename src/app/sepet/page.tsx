@@ -7,17 +7,17 @@ import Link from "next/link";
 import { X, Plus, Minus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Setting } from "@/types";
-import { useAuth } from "@/context/AuthContext"; // 🔹 oturum bilgisi
+import { useAuth } from "@/context/AuthContext";
+import CouponInput from "@/components/CouponInput"; // Yeni component'i import et
 
 export default function CartPage() {
+  // `cart` objesi artık indirim bilgilerini de içeriyor
   const { cart, addItem, decreaseItem, removeItem, loading: cartLoading } = useCart();
   const { user } = useAuth();
   const isAuthenticated = !!user;
 
-  // Ödeme anahtarı (env)
   const checkoutEnabled = process.env.NEXT_PUBLIC_CHECKOUT_ENABLED === "true";
 
-  // Ayarlar
   const [settingsLoading, setSettingsLoading] = useState(true);
   const [settings, setSettings] = useState<{ fee: number; threshold: number }>({
     fee: 50,
@@ -29,12 +29,8 @@ export default function CartPage() {
       setSettingsLoading(true);
       try {
         const fetchedSettings = await getSettings();
-        const fee = parseFloat(
-          fetchedSettings.find((s: Setting) => s.key === "ShippingFee")?.value || "50"
-        );
-        const threshold = parseFloat(
-          fetchedSettings.find((s: Setting) => s.key === "FreeShippingThreshold")?.value || "2000"
-        );
+        const fee = parseFloat(fetchedSettings.find((s: Setting) => s.key === "ShippingFee")?.value || "50");
+        const threshold = parseFloat(fetchedSettings.find((s: Setting) => s.key === "FreeShippingThreshold")?.value || "2000");
         setSettings({ fee, threshold });
       } catch (error) {
         console.error("Ayarlar alınamadı:", error);
@@ -45,13 +41,16 @@ export default function CartPage() {
     fetchSettings();
   }, []);
 
-  const subtotal =
-    cart?.items.reduce((sum, item) => sum + item.price * item.quantity, 0) || 0;
-
+  // --- GÜNCELLENMİŞ HESAPLAMALAR ---
+  // Artık bu değerleri doğrudan güncel cart objesinden alıyoruz
+  const subtotal = cart?.subtotal || 0;
+  const discountAmount = cart?.discountAmount || 0;
   const shippingFee = settingsLoading ? 0 : subtotal >= settings.threshold ? 0 : settings.fee;
-  const total = subtotal + shippingFee;
+  // Toplamı da doğrudan cart'tan alıyoruz, eğer yoksa hesaplıyoruz
+  const total = cart?.total !== undefined ? cart.total + shippingFee : subtotal - discountAmount + shippingFee;
 
-  if (cartLoading) {
+
+  if (cartLoading && !cart) { // Sadece ilk yüklemede göster
     return (
       <div className="container mx-auto px-6 py-16 text-center pt-48">
         Yükleniyor...
@@ -90,66 +89,37 @@ export default function CartPage() {
                 <li key={item.productId} className="relative flex py-6 sm:py-10">
                   <div className="flex-shrink-0">
                     <Image
-                      src={
-                        item.imageUrl ||
-                        `https://placehold.co/200x200/F7F5F2/333333.png?text=${encodeURIComponent(
-                          item.name
-                        )}`
-                      }
+                      src={item.imageUrl || `https://placehold.co/200x200/F7F5F2/333333.png?text=${encodeURIComponent(item.name)}`}
                       alt={item.name}
                       width={200}
                       height={200}
                       className="h-24 w-24 rounded-md object-cover object-center sm:h-48 sm:w-48"
                     />
                   </div>
-
                   <div className="ml-4 flex flex-1 flex-col justify-between sm:ml-6">
                     <div>
-                      <div className="flex justify-between">
-                        <h3 className="text-sm">
-                          <Link
-                            href={`/urun/${item.productId}`}
-                            className="font-medium text-gray-700 hover:text-gray-800"
-                          >
-                            {item.name}
-                          </Link>
-                        </h3>
-                      </div>
+                      <h3 className="text-sm">
+                        <Link href={`/urun/${item.productId}`} className="font-medium text-gray-700 hover:text-gray-800">
+                          {item.name}
+                        </Link>
+                      </h3>
                       <p className="mt-1 text-sm font-medium text-gray-900">{item.price} TL</p>
                     </div>
                     <div className="flex items-center mt-4">
                       <p className="text-sm text-gray-500 mr-4">Adet:</p>
                       <div className="flex items-center border border-gray-300 rounded-md">
-                        <button
-                          type="button"
-                          onClick={() => decreaseItem(item.productId)}
-                          disabled={cartLoading}
-                          className="px-3 py-1 text-gray-600 hover:bg-gray-100 disabled:opacity-50"
-                        >
+                        <button type="button" onClick={() => decreaseItem(item.productId)} disabled={cartLoading} className="px-3 py-1 text-gray-600 hover:bg-gray-100 disabled:opacity-50">
                           <Minus size={16} />
                         </button>
-                        <span className="px-4 py-1 text-gray-800 font-medium">
-                          {item.quantity}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => addItem(item.productId)}
-                          disabled={cartLoading}
-                          className="px-3 py-1 text-gray-600 hover:bg-gray-100 disabled:opacity-50"
-                        >
+                        <span className="px-4 py-1 text-gray-800 font-medium">{item.quantity}</span>
+                        <button type="button" onClick={() => addItem(item.productId)} disabled={cartLoading} className="px-3 py-1 text-gray-600 hover:bg-gray-100 disabled:opacity-50">
                           <Plus size={16} />
                         </button>
                       </div>
                     </div>
                   </div>
-
                   <div className="absolute right-0 top-6">
-                    <button
-                      type="button"
-                      onClick={() => removeItem(item.productId)}
-                      className="-m-2 inline-flex p-2 text-gray-400 hover:text-gray-500"
-                      disabled={cartLoading}
-                    >
+                    <button type="button" onClick={() => removeItem(item.productId)} className="-m-2 inline-flex p-2 text-gray-400 hover:text-gray-500" disabled={cartLoading}>
                       <span className="sr-only">Kaldır</span>
                       <X className="h-5 w-5" aria-hidden="true" />
                     </button>
@@ -170,29 +140,31 @@ export default function CartPage() {
             <dl className="mt-6 space-y-4">
               <div className="flex items-center justify-between">
                 <dt className="text-sm text-gray-600">Ara Toplam</dt>
-                <dd className="text-sm font-medium text-gray-900">
-                  {subtotal.toFixed(2)} TL
-                </dd>
+                <dd className="text-sm font-medium text-gray-900">{subtotal.toFixed(2)} TL</dd>
               </div>
+
+              {/* --- YENİ İNDİRİM SATIRI --- */}
+              {discountAmount > 0 && (
+                <div className="flex items-center justify-between text-green-600">
+                  <dt className="text-sm flex items-center">
+                    <span>İndirim ({cart.appliedCouponCode})</span>
+                  </dt>
+                  <dd className="text-sm font-medium">-{discountAmount.toFixed(2)} TL</dd>
+                </div>
+              )}
 
               <div className="flex items-center justify-between border-t border-gray-200 pt-4">
                 <dt className="flex items-center text-sm text-gray-600">
                   <span>Kargo Ücreti</span>
                 </dt>
                 <dd className="text-sm font-medium text-gray-900">
-                  {settingsLoading
-                    ? "Hesaplanıyor..."
-                    : shippingFee === 0
-                    ? "Ücretsiz"
-                    : `${shippingFee.toFixed(2)} TL`}
+                  {settingsLoading ? "Hesaplanıyor..." : shippingFee === 0 ? "Ücretsiz" : `${shippingFee.toFixed(2)} TL`}
                 </dd>
               </div>
 
               {!settingsLoading && subtotal > 0 && subtotal < settings.threshold && (
                 <div className="text-center text-xs text-green-600 pt-2">
-                  Ücretsiz kargo için sepetinize{" "}
-                  <strong>{(settings.threshold - subtotal).toFixed(2)} TL</strong>{" "}
-                  daha ekleyin!
+                  Ücretsiz kargo için sepetinize <strong>{(settings.threshold - subtotal).toFixed(2)} TL</strong> daha ekleyin!
                 </div>
               )}
 
@@ -204,22 +176,16 @@ export default function CartPage() {
               </div>
             </dl>
 
+            {/* --- YENİ KUPON GİRİŞ ALANI --- */}
+            <CouponInput />
+
             <div className="mt-6">
               {checkoutEnabled ? (
-                <Link
-                  href="/odeme"
-                  className="w-full block text-center rounded-md border border-transparent bg-gray-900 px-4 py-3 text-base font-medium text-white shadow-sm hover:bg-gray-700"
-                >
+                <Link href="/odeme" className="w-full block text-center rounded-md border border-transparent bg-gray-900 px-4 py-3 text-base font-medium text-white shadow-sm hover:bg-gray-700">
                   {isAuthenticated ? "Ödemeye Geç" : "Misafir Olarak Öde"}
                 </Link>
               ) : (
-                <button
-                  type="button"
-                  disabled
-                  aria-disabled
-                  title="Çok yakında"
-                  className="w-full block text-center rounded-md border border-gray-300 bg-gray-200 px-4 py-3 text-base font-medium text-gray-500 cursor-not-allowed"
-                >
+                <button type="button" disabled aria-disabled title="Çok yakında" className="w-full block text-center rounded-md border border-gray-300 bg-gray-200 px-4 py-3 text-base font-medium text-gray-500 cursor-not-allowed">
                   Satın Al (Çok Yakında)
                 </button>
               )}
