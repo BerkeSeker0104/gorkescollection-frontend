@@ -33,11 +33,11 @@ export default function ShippingAndReturnsPage() {
                                 </p>
                                 <h4>Kargo Ücreti</h4>
                                 <p>
-                                    Türkiye'nin her yerine sabit kargo ücretimiz <strong>50.00 TL</strong>'dir. <strong>2000 TL ve üzeri</strong> tüm alışverişlerinizde kargo ücretsizdir.
+                                    Türkiye'nin her yerine sabit kargo ücretimiz <strong>69.90 TL</strong>'dir. <strong>500 TL ve üzeri</strong> tüm alışverişlerinizde kargo ücretsizdir.
                                 </p>
                                 <h4>Anlaşmalı Kargo Firmaları</h4>
                                 <p>
-                                    Siparişlerinizi, Türkiye'nin en güvenilir kargo firmalarından olan <strong>Yurtiçi Kargo</strong> ve <strong>Kolay Gelsin</strong> ile gönderiyoruz.
+                                    Siparişlerinizi, Türkiye'nin en güvenilir kargo firmalarından olan <strong>Aras Kargo</strong>, <strong>PTT Kargo</strong>, <strong>Hepsijet</strong> ve <strong>Sürat Kargo</strong> ile gönderiyoruz.
                                 </p>
                             </div>
                         </div>

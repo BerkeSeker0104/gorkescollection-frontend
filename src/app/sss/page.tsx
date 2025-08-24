@@ -7,15 +7,15 @@ const faqData = [
     },
     {
         question: "Takılarınız kararma yapar mı?",
-        answer: "<p>Hayır. Tüm ürünlerimiz, kararmaya, paslanmaya ve suya karşı dayanıklı olan en yüksek kalitede 316L paslanmaz çelikten üretilmektedir. Günlük kullanımda gönül rahatlığıyla kullanabilirsiniz.</p>"
+        answer: "<p>Tüm ürünlerimiz, kararmaya, paslanmaya ve suya karşı dayanıklı olan en yüksek kalitede 316L paslanmaz çelikten üretilmektedir. Günlük kullanımda gönül rahatlığıyla kullanabilirsiniz.</p>"
     },
     {
         question: "Hangi kargo firması ile çalışıyorsunuz?",
-        answer: "<p>Siparişlerinizi Yurtiçi Kargo ve Kolay Gelsin güvencesiyle adresinize teslim ediyoruz.</p>"
+        answer: "<p>Siparişlerinizi Aras Kargo, PTT Kargo, Hepsijet ve Sürat Kargo güvencesiyle adresinize teslim ediyoruz.</p>"
     },
     {
         question: "İade ve değişim politikanız nedir?",
-        answer: "<p>Kullanılmamış ve orijinal ambalajı bozulmamış ürünlerinizi, teslim tarihinden itibaren 14 gün içerisinde iade edebilir veya değiştirebilirsiniz. Detaylı bilgi için 'Kargo ve İade' sayfamızı ziyaret edebilirsiniz.</p><p>Hijyen sebebiyle küpe kategorisindeki ürünlerde iade veya değişim yapılamamaktadır.</p>"
+        answer: "<p>Kullanılmamış ve orijinal ambalajı bozulmamış ürünlerinizi, teslim tarihinden itibaren 14 gün içerisinde iade edebilir. Detaylı bilgi için 'Kargo ve İade' sayfamızı ziyaret edebilirsiniz.</p><p>Hijyen sebebiyle küpe kategorisindeki ürünlerde iade veya değişim yapılamamaktadır.</p>"
     },
     {
         question: "Kapıda ödeme seçeneğiniz var mı?",
