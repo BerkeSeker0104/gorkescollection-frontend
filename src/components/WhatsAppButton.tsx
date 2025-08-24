@@ -22,7 +22,7 @@ const WhatsAppButton = ({ phoneNumber }: { phoneNumber: string }) => {
         alt="WhatsApp İletişim"
         width={32} // İkonun genişliği artırıldı (eski buton boyutu)
         height={32} // İkonun yüksekliği artırıldı (eski buton boyutu)
-        className="w-16 h-16 drop-shadow-lg" // Boyut ve gölge eklendi
+        
       />
     </a>
   );
