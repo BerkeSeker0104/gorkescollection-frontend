@@ -1,17 +1,12 @@
-// src/app/urun/[id]/page.tsx
 "use client";
 
-// YORUMLAR İÇİN GEREKLİ IMPORT'LAR (MEVCUT + EK)
 import { Product, Review } from "@/types";
 import { getReviewsForProduct } from "@/lib/api";
 import StarRating from "@/components/StarRating";
 import ReviewList from "@/components/ReviewList";
-// --- YENİ: Yorum formu ve auth ---
 import { useAuth } from "@/context/AuthContext";
 import ReviewForm from "@/components/ReviewForm";
 import Link from "next/link";
-// ---
-
 import Image from "next/image";
 import AddToCartButton from "@/components/AddToCartButton";
 import { useEffect, useState, useMemo, useCallback } from "react";
@@ -21,27 +16,18 @@ import FavoriteButton from "@/components/FavoriteButton";
 import Autoplay from "embla-carousel-autoplay";
 import StockNotificationButton from '@/components/StockNotificationButton';
 
-
-
+// --- 1. YENİ COMPONENT'İ IMPORT EDİN ---
+import MobileAddToCartBar from '@/components/MobileAddToCartBar';
 
 const PLACEHOLDER = "/placeholder.png";
 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
-
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // YORUMLAR: liste state'i
   const [reviews, setReviews] = useState<Review[]>([]);
-
-  // --- YENİ: yorum formu için kullanıcı bilgisi
   const { user } = useAuth();
-
-  // Lightbox durumu
   const [isLightboxOpen, setLightboxOpen] = useState(false);
-
-  // Embla: ana slider + thumbnail slider
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: true, align: "center", skipSnaps: false, dragFree: false },
@@ -53,7 +39,6 @@ export default function ProductPage() {
     align: "start",
   });
 
-  // ÜRÜN + YORUM VERİSİ: paralel çekim (mevcut mantık korunarak)
   useEffect(() => {
     if (!id) return;
     const getProductAndReviews = async (pid: string) => {
@@ -63,14 +48,12 @@ export default function ProductPage() {
           fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/${pid}`),
           getReviewsForProduct(pid),
         ]);
-
         if (productResponse.ok) {
           const productData = await productResponse.json();
           setProduct(productData);
         } else {
           setProduct(null);
         }
-
         setReviews(reviewsData);
       } catch (error) {
         console.error("Ürün ve yorumlar çekilirken bir hata oluştu:", error);
@@ -83,7 +66,6 @@ export default function ProductPage() {
     getProductAndReviews(id);
   }, [id]);
 
-  // YORUM ÖZETİ: ortalama ve adet
   const reviewSummary = useMemo(() => {
     const count = reviews.length;
     if (count === 0) return { average: 0, count: 0 };
@@ -92,18 +74,15 @@ export default function ProductPage() {
     return { average, count };
   }, [reviews]);
 
-  // --- YENİ: Yorum formu submit handler'ı (listeyi anında günceller)
   const handleReviewSubmitted = (newReview: Review) => {
     setReviews((prev) => [newReview, ...prev]);
   };
 
-  // Görseller
   const images = useMemo(() => {
     const arr = product?.imageUrls?.filter((u) => !!u) ?? [];
     return arr.length > 0 ? arr : [PLACEHOLDER];
   }, [product]);
 
-  // Embla seçimi
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
     const i = emblaApi.selectedScrollSnap();
@@ -140,7 +119,6 @@ export default function ProductPage() {
     [emblaApi]
   );
 
-  // Lightbox
   const openLightbox = useCallback(() => {
     if (images.length === 1 && images[0] === PLACEHOLDER) return;
     setLightboxOpen(true);
@@ -150,20 +128,13 @@ export default function ProductPage() {
     setLightboxOpen(false);
   }, []);
 
-  // Lightbox klavye kısayolları
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isLightboxOpen) return;
-
-      if (e.key === "Escape") {
-        closeLightbox();
-      } else if (e.key === "ArrowRight") {
-        scrollNext();
-      } else if (e.key === "ArrowLeft") {
-        scrollPrev();
-      }
+      if (e.key === "Escape") closeLightbox();
+      else if (e.key === "ArrowRight") scrollNext();
+      else if (e.key === "ArrowLeft") scrollPrev();
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isLightboxOpen, closeLightbox, scrollNext, scrollPrev]);
@@ -173,7 +144,11 @@ export default function ProductPage() {
 
   return (
     <>
-      <div className="bg-white pt-32">
+      {/* --- 3. YENİ MOBİL BAR'I VE BOŞLUĞU EKLEYİN --- */}
+      <MobileAddToCartBar product={product} />
+      
+      {/* Ana içerik alanı. Mobil için alttan boşluk eklendi (pb-24) */}
+      <div className="bg-white pt-32 pb-24 md:pb-0">
         <div className="container mx-auto px-4 py-16 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-12">
             {/* Sol: Görsel Galeri (Embla) */}
@@ -200,66 +175,25 @@ export default function ProductPage() {
                     ))}
                   </div>
                 </div>
-
                 {images.length > 1 && (
                   <>
-                    <button
-                      type="button"
-                      onClick={scrollPrev}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-md transition-opacity focus:outline-none focus:ring-2 focus:ring-gray-900"
-                      aria-label="Önceki görsel"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-6 w-6"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                      </svg>
+                    <button type="button" onClick={scrollPrev} className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-md transition-opacity focus:outline-none focus:ring-2 focus:ring-gray-900" aria-label="Önceki görsel">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                     </button>
-                    <button
-                      type="button"
-                      onClick={scrollNext}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-md transition-opacity focus:outline-none focus:ring-2 focus:ring-gray-900"
-                      aria-label="Sonraki görsel"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-6 w-6"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
+                    <button type="button" onClick={scrollNext} className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-md transition-opacity focus:outline-none focus:ring-2 focus:ring-gray-900" aria-label="Sonraki görsel">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                     </button>
                   </>
                 )}
               </div>
-
               {/* Thumbnails */}
               {images.length > 1 && (
                 <div className="mt-4">
                   <div className="overflow-hidden" ref={thumbRef}>
                     <div className="flex gap-3">
                       {images.map((url, index) => (
-                        <button
-                          key={index}
-                          onClick={() => onThumbClick(index)}
-                          className={`relative aspect-square w-20 flex-shrink-0 overflow-hidden rounded-lg border-2 transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 ${
-                            selectedIndex === index ? "border-gray-900" : "border-transparent"
-                          }`}
-                          aria-label={`Görsel ${index + 1}`}
-                        >
-                          <Image
-                            src={url}
-                            alt={`${product.name} thumbnail ${index + 1}`}
-                            fill
-                            sizes="80px"
-                            className="h-full w-full object-cover"
-                          />
+                        <button key={index} onClick={() => onThumbClick(index)} className={`relative aspect-square w-20 flex-shrink-0 overflow-hidden rounded-lg border-2 transition hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 ${selectedIndex === index ? "border-gray-900" : "border-transparent"}`} aria-label={`Görsel ${index + 1}`}>
+                          <Image src={url} alt={`${product.name} thumbnail ${index + 1}`} fill sizes="80px" className="h-full w-full object-cover" />
                         </button>
                       ))}
                     </div>
@@ -273,50 +207,31 @@ export default function ProductPage() {
               <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
                 {product.name}
               </h1>
-
-              {/* YORUM ÖZETİ */}
               <div className="mt-3 flex items-center">
                 {reviewSummary.count > 0 ? (
                   <>
                     <StarRating rating={reviewSummary.average} starSize={20} />
-                    <a href="#reviews" className="ml-3 text-sm font-medium text-indigo-600 hover:text-indigo-500">
-                      {reviewSummary.count} yorum
-                    </a>
+                    <a href="#reviews" className="ml-3 text-sm font-medium text-indigo-600 hover:text-indigo-500">{reviewSummary.count} yorum</a>
                   </>
                 ) : (
                   <p className="text-sm text-gray-500">Henüz yorum yapılmamış</p>
                 )}
               </div>
-
               <p className="mt-4 text-3xl tracking-tight text-gray-900">
-                {typeof product.price === "number"
-                  ? product.price.toLocaleString("tr-TR", {
-                      style: "currency",
-                      currency: "TRY",
-                    })
-                  : `${product.price} TL`}
+                {typeof product.price === "number" ? product.price.toLocaleString("tr-TR", { style: "currency", currency: "TRY" }) : `${product.price} TL`}
               </p>
+              <div className="mt-6 text-base text-gray-700 space-y-4" dangerouslySetInnerHTML={{ __html: product.description || "" }} />
 
-              <div
-                className="mt-6 text-base text-gray-700 space-y-4"
-                dangerouslySetInnerHTML={{ __html: product.description || "" }}
-              />
-
-              <div className="mt-10 flex items-stretch gap-3">
+              {/* --- 2. ORİJİNAL BUTONLARI MOBİLDE GİZLEYİN --- */}
+              <div className="hidden md:flex mt-10 items-stretch gap-3">
                 <div className="flex-1">
-                  {/* --- YENİ KOŞULLU MANTIK --- */}
                   {product.stockQuantity > 0 ? (
                     <AddToCartButton productId={product.id} />
                   ) : (
                     <StockNotificationButton productId={product.id} />
                   )}
-                  {/* --- MANTIK SONU --- */}
                 </div>
-                <FavoriteButton
-                  product={product}
-                  size={28}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md px-4 flex items-center"
-                />
+                <FavoriteButton product={product} size={28} className="bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md px-4 flex items-center" />
               </div>
 
               {product.specifications && Object.keys(product.specifications).length > 0 && (
@@ -337,102 +252,42 @@ export default function ProductPage() {
             </div>
           </div>
 
-          {/* YORUMLAR BÖLÜMÜ: Sol form (giriş varsa), sağ liste */}
+          {/* Yorumlar Bölümü */}
           <div id="reviews" className="mt-16 pt-10 border-t border-gray-200">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-12 gap-y-10">
-              {/* SOL: Yorum Yazma */}
               <div className="lg:col-span-1">
                 <h3 className="text-lg font-medium text-gray-900">Yorumunuzu Paylaşın</h3>
                 {user ? (
-                  <div className="mt-4">
-                    <ReviewForm productId={product.id} onReviewSubmitted={handleReviewSubmitted} />
-                  </div>
+                  <div className="mt-4"><ReviewForm productId={product.id} onReviewSubmitted={handleReviewSubmitted} /></div>
                 ) : (
-                  <div className="mt-4 p-4 border rounded-md text-sm text-gray-700 bg-gray-50">
-                    Yorum yapmak için{" "}
-                    <Link href="/giris" className="font-medium text-indigo-600 hover:underline">
-                      giriş yapmanız
-                    </Link>{" "}
-                    gerekmektedir.
-                  </div>
+                  <div className="mt-4 p-4 border rounded-md text-sm text-gray-700 bg-gray-50">Yorum yapmak için <Link href="/giris" className="font-medium text-indigo-600 hover:underline">giriş yapmanız</Link> gerekmektedir.</div>
                 )}
               </div>
-
-              {/* SAĞ: Yorum Listesi */}
               <div className="lg:col-span-2">
                 <h3 className="text-lg font-medium text-gray-900">Müşteri Yorumları ({reviewSummary.count})</h3>
-                <div className="mt-4">
-                  <ReviewList reviews={reviews} />
-                </div>
+                <div className="mt-4"><ReviewList reviews={reviews} /></div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Lightbox Modal (mevcut davranış korunur) */}
+      {/* Lightbox Modal */}
       {isLightboxOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4 animate-fade-in"
-          onClick={closeLightbox}
-        >
-          {/* Kapatma Butonu */}
-          <button
-            className="absolute top-4 right-4 text-white text-5xl font-bold z-[52] hover:text-gray-300 transition-colors"
-            aria-label="Galeriyi kapat"
-            onClick={closeLightbox}
-          >
-            &times;
-          </button>
-
-          {/* Navigasyon ve Resim Konteyneri */}
+        <div className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4 animate-fade-in" onClick={closeLightbox}>
+          <button className="absolute top-4 right-4 text-white text-5xl font-bold z-[52] hover:text-gray-300 transition-colors" aria-label="Galeriyi kapat" onClick={closeLightbox}>&times;</button>
           <div className="relative w-full h-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-            {/* Önceki Buton */}
             {images.length > 1 && (
-              <button
-                onClick={scrollPrev}
-                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 rounded-full p-2 text-white z-[52] transition-colors"
-                aria-label="Önceki görsel"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
+              <button onClick={scrollPrev} className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 rounded-full p-2 text-white z-[52] transition-colors" aria-label="Önceki görsel">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               </button>
             )}
-
-            {/* Büyük Resim */}
             <div className="relative w-full h-full max-w-5xl max-h-[90vh]">
-              <Image
-                src={images[selectedIndex]}
-                alt={`Büyük resim ${product?.name} - ${selectedIndex + 1}`}
-                fill
-                sizes="100vw"
-                className="object-contain"
-              />
+              <Image src={images[selectedIndex]} alt={`Büyük resim ${product?.name} - ${selectedIndex + 1}`} fill sizes="100vw" className="object-contain" />
             </div>
-
-            {/* Sonraki Buton */}
             {images.length > 1 && (
-              <button
-                onClick={scrollNext}
-                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 rounded-full p-2 text-white z-[52] transition-colors"
-                aria-label="Sonraki görsel"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
+              <button onClick={scrollNext} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 rounded-full p-2 text-white z-[52] transition-colors" aria-label="Sonraki görsel">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
               </button>
             )}
           </div>
