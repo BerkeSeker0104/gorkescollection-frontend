@@ -8,7 +8,8 @@ import Footer from "@/components/Footer";
 import { AuthProvider } from "@/context/AuthContext";
 import { FavoritesProvider } from "@/context/FavoritesContext";
 import { CartProvider } from "@/context/CartContext";
-import { Toaster } from "react-hot-toast"; // DEĞİŞİKLİK: Toaster'ı import ediyoruz
+import { Toaster } from "react-hot-toast"; 
+import WhatsAppButton from '@/components/WhatsAppButton';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,6 +23,8 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+
+  const WHATSAPP_PHONE_NUMBER = '905308331705';
   return (
     <html lang="tr">
       <body className={inter.className}>
@@ -34,6 +37,7 @@ export default function RootLayout({
                 <Header />
                 <main className="flex-grow">{children}</main>
                 <Footer />
+                <WhatsAppButton phoneNumber={WHATSAPP_PHONE_NUMBER} />
               </div>
             </CartProvider>
           </FavoritesProvider>
