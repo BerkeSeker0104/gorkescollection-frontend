@@ -32,7 +32,10 @@ const getToken = (): string | null => {
 
 // GÜNCELLENMİŞ MERKEZİ FONKSİYON: Her zaman geçerli bir Headers nesnesi döndürür
 const getAuthHeaders = (): HeadersInit => {
-  const headers: { [key: string]: string } = {};
+  const headers: { [key: string]: string } = {
+    // Bu satır, gönderilen verinin JSON formatında olduğunu belirtir.
+    'Content-Type': 'application/json'
+  };
   const token = getToken();
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
