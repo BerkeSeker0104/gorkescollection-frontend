@@ -79,10 +79,25 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Alt Bölüm: Telif Hakkı ve Sosyal Medya */}
-        <div className="mt-12 pt-8 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm text-gray-500">&copy; {new Date().getFullYear()} Gorke's Collection. Tüm hakları saklıdır.</p>
-          <div className="flex space-x-6 mt-4 md:mt-0">
+        {/* --- GÜNCELLENMİŞ ALT BÖLÜM --- */}
+        <div className="mt-12 pt-8 border-t border-gray-200 flex flex-col-reverse sm:flex-row justify-between items-center gap-6">
+          
+          {/* Sol Taraf: Telif Hakkı ve Ödeme Logoları */}
+          <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+            <p className="text-sm text-gray-500">&copy; {new Date().getFullYear()} Gorke's Collection. Tüm hakları saklıdır.</p>
+            <div className="border-t sm:border-t-0 sm:border-l border-gray-200 pl-4 pt-4 sm:pt-0">
+              <Image 
+                src="/images/paytr/tekparca-logolar-1.jpg"
+                alt="Visa, Mastercard, Troy ile güvenli ödeme"
+                width={150}
+                height={25}
+                className="h-auto"
+              />
+            </div>
+          </div>
+
+          {/* Sağ Taraf: Sosyal Medya */}
+          <div className="flex space-x-6">
             <a href="https://www.instagram.com/gorkescollection/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-800">
               <Instagram size={20} />
             </a>
