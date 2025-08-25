@@ -2,12 +2,11 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, type ReactNode } from "react";
+// GÜNCELLENDİ: useState ve Menu ikonu import edildi
+import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { Home, Package, Layers, ShoppingCart, Settings, Ticket, LogOut } from 'lucide-react';
-import Image from "next/image";
+import { Home, Package, Layers, ShoppingCart, Settings, Ticket, LogOut, Menu } from 'lucide-react';
 
-// Yan menüdeki linkleri ve ikonları tanımlıyoruz
 const navItems = [
   { href: '/admin', label: 'Ana Panel', icon: Home },
   { href: '/admin/urunler', label: 'Ürünler', icon: Package },
@@ -21,22 +20,48 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const { user, isAdmin, loading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  
+  // YENİ: Mobil menünün açık/kapalı durumunu tutmak için state eklendi
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !isAdmin) {
       router.push('/');
     }
   }, [isAdmin, loading, router]);
+  
+  // YENİ: Sayfa değiştiğinde mobil menüyü kapat
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
 
   if (loading || !isAdmin) {
     return <div className="pt-40 text-center">Yönlendiriliyor...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 pt-20">
+    <div className="min-h-screen bg-gray-100">
+      {/* YENİ: Mobil için Menü Butonu (Hamburger İkonu) */}
+      <div className="md:hidden flex items-center justify-between bg-white border-b border-gray-200 fixed top-20 left-0 right-0 h-16 px-4 z-20">
+         <span className="text-lg font-semibold text-gray-800">Admin Paneli</span>
+         <button onClick={() => setSidebarOpen(true)} className="p-2">
+            <Menu size={24} />
+         </button>
+      </div>
+
       <div className="flex">
-        {/* Sol Taraf: Yan Menü (Sidebar) */}
-        <aside className="w-64 bg-white border-r border-gray-200 fixed top-20 left-0 h-[calc(100vh-80px)] p-4 flex flex-col justify-between">
+        {/* YENİ: Menü açıkken içeriği karartan ve tıklayınca menüyü kapatan overlay */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          ></div>
+        )}
+
+        {/* GÜNCELLENDİ: Sol Taraf: Yan Menü (Sidebar) */}
+        <aside className={`w-64 bg-white border-r border-gray-200 fixed top-20 left-0 h-[calc(100vh-80px)] p-4 flex flex-col justify-between
+                           transition-transform duration-300 ease-in-out z-40
+                           md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
           <nav className="space-y-2">
             {navItems.map((item) => (
               <Link
@@ -72,8 +97,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           </div>
         </aside>
 
-        {/* Sağ Taraf: Ana İçerik */}
-        <main className="flex-1 ml-64 p-8">
+        {/* GÜNCELLENDİ: Sağ Taraf: Ana İçerik */}
+        <main className="flex-1 md:ml-64 p-8 pt-24 md:pt-8">
           {children}
         </main>
       </div>
