@@ -161,14 +161,18 @@ export const deleteReview = async (reviewId: number): Promise<boolean> => {
 export async function initiatePaytrPayment(address: ShippingAddress, guestEmail?: string, preferredCarrier?: string) {
   const res = await fetch(`${API_URL}/api/payments/initiate-payment`, {
     method: "POST",
+    credentials: 'include', // DEĞİŞİKLİK BURADA
     headers: {
       "Content-Type": "application/json",
-      ...getAuthHeaders(), // YENİ
+      ...getAuthHeaders(),
     },
     body: JSON.stringify({ shippingAddress: address, email: guestEmail, preferredCarrier }),
   });
 
-  if (!res.ok) { const t = await res.text().catch(() => ""); throw new Error(t || "Ödeme başlatılamadı"); }
+  if (!res.ok) { 
+    const errorBody = await res.json().catch(() => ({ message: "Ödeme başlatılamadı."}));
+    throw new Error(errorBody.message || "Ödeme başlatılamadı"); 
+  }
   const data = await res.json();
   return (data?.iframeToken ?? data?.token) as string | undefined;
 }
@@ -400,7 +404,8 @@ export const getCart = async (): Promise<CartDto | null> => {
   try {
     const res = await fetch(`${API_URL}/api/cart`, {
       method: 'GET',
-      headers: { ...getAuthHeaders() }, // YENİ
+      credentials: 'include', // DEĞİŞİKLİK BURADA
+      headers: { ...getAuthHeaders() },
       cache: 'no-store',
     });
     if (!res.ok) return null;
@@ -414,13 +419,18 @@ export const addToCart = async (productId: number, quantity: number): Promise<Ca
   try {
     const res = await fetch(`${API_URL}/api/cart/items`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() }, // YENİ
+      credentials: 'include', // DEĞİŞİKLİK BURADA
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
       body: JSON.stringify({ productId, quantity }),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.detail || errorData.title || 'Ürün sepete eklenemedi.');
+    }
     return res.json();
-  } catch (e) {
-    return null;
+  } catch (error) {
+    console.error('Sepete eklenirken hata:', error);
+    throw error;
   }
 };
 
@@ -428,11 +438,12 @@ export const removeFromCart = async (productId: number, quantity: number): Promi
   try {
     const res = await fetch(`${API_URL}/api/cart/items`, {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() }, // YENİ
+      credentials: 'include', // DEĞİŞİKLİK BURADA
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
       body: JSON.stringify({ productId, quantity }),
     });
     if (!res.ok) return null;
-    return getCart(); // getCart zaten yeni header'ı kullanıyor
+    return res.json();
   } catch (e) {
     return null;
   }
@@ -972,6 +983,7 @@ export const applyCoupon = async (couponCode: string): Promise<CartDto | null> =
   try {
     const res = await fetch(`${API_URL}/api/cart/apply-coupon`, {
       method: 'POST',
+      credentials: 'include', // DEĞİŞİKLİK BURADA
       headers: {
         'Content-Type': 'application/json',
         ...getAuthHeaders(),
@@ -980,7 +992,6 @@ export const applyCoupon = async (couponCode: string): Promise<CartDto | null> =
     });
 
     if (!res.ok) {
-      // Hata durumunda backend'den gelen mesajı yakala ve fırlat
       const errorData = await res.json();
       throw new Error(errorData.message || 'Geçersiz kupon kodu.');
     }
@@ -988,7 +999,7 @@ export const applyCoupon = async (couponCode: string): Promise<CartDto | null> =
     return res.json();
   } catch (error) {
     console.error('Kupon uygulanırken hata:', error);
-    throw error; // Hatanın component tarafından yakalanabilmesi için tekrar fırlat
+    throw error;
   }
 };
 
