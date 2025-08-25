@@ -1,5 +1,6 @@
 export interface Product {
   id: number;
+  sku: string;
   name: string;
   description: string;
   price: number;
@@ -106,6 +107,8 @@ export interface Address {
 
 export interface AdminProductDto {
   id?: number;
+  sku: string;
+  displayOrder?: number | null;
   name: string;
   description: string;
   price: number;

@@ -1,4 +1,3 @@
-// src/app/admin/urunler/duzenle/[id]/page.tsx
 "use client";
 
 import ProductForm, { ProductFormData } from "@/components/ProductForm";
@@ -53,7 +52,6 @@ export default function EditProductPage() {
     return Number(fromFlat ?? fromRel ?? cats?.[0]?.id ?? 0);
   };
 
-  // backend’ten ISO (UTC) gelebilir; datetime-local input için "YYYY-MM-DDTHH:mm" üret
   const toLocalInput = (iso?: string | null) => {
     if (!iso) return null;
     const d = new Date(iso);
@@ -79,25 +77,22 @@ export default function EditProductPage() {
       value: String(value ?? ""),
     }));
 
-    // imageUrls her zaman string[]
     const imageUrls: string[] = Array.isArray((product as any).imageUrls)
       ? ((product as any).imageUrls.filter(Boolean) as string[])
       : [];
 
-    // saleType union'a indir
     const rawSaleType = (product as any).saleType;
     const saleType: "percentage" | "amount" | null =
       rawSaleType === "percentage" || rawSaleType === "amount" ? rawSaleType : null;
 
-    // saleValue number | null
     const rawSaleValue = (product as any).saleValue;
     const saleValue: number | null =
       typeof rawSaleValue === "number" ? rawSaleValue : null;
 
     return {
-      // ZORUNLU ALAN: sku (eksikse boş string ver)
       sku: (product as any).sku ?? "",
-
+      // GÜNCELLENDİ: Mevcut ürünün displayOrder değerini forma yükle
+      displayOrder: (product as any).displayOrder ?? null,
       name: String(product.name ?? ""),
       description: String((product as any).description ?? ""),
       price: Number((product as any).price ?? 0),
@@ -106,13 +101,10 @@ export default function EditProductPage() {
       imageUrls,
       specifications: specsArray,
       isFeatured: Boolean((product as any).isFeatured),
-
-      // --- İNDİRİM ALANLARI (Form şemanla uyumlu) ---
       saleType,
       saleValue,
       saleStartUtc: toLocalInput((product as any).saleStartUtc),
       saleEndUtc: toLocalInput((product as any).saleEndUtc),
-      // opsiyonel alan; string ya da null bırak
       saleLabel:
         (product as any).saleLabel === undefined || (product as any).saleLabel === null
           ? null
@@ -130,6 +122,9 @@ export default function EditProductPage() {
 
     const payload: AdminProductDto = {
       id: productId,
+      // GÜNCELLENDİ: Formdaki sku ve displayOrder değerlerini payload'a ekle
+      sku: data.sku,
+      displayOrder: data.displayOrder,
       name: data.name,
       description: data.description,
       price: data.price,
@@ -138,8 +133,6 @@ export default function EditProductPage() {
       imageUrls: data.imageUrls,
       specifications,
       isFeatured: Boolean(data.isFeatured),
-
-      // --- İNDİRİM ALANLARI (Form submit’i ISO/UTC verecek şekilde ayarlı) ---
       saleType: (data.saleType ?? null) as "percentage" | "amount" | null,
       saleValue: data.saleValue ?? null,
       saleStartUtc: data.saleStartUtc ?? null,
@@ -174,8 +167,6 @@ export default function EditProductPage() {
           categories={categories}
           onSubmit={handleUpdateProduct}
         />
-
-        {/* --- YENİ EKLENEN BÖLÜM --- */}
         <SubscriberList productId={productId} />
       </div>
     </div>
