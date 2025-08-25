@@ -158,7 +158,7 @@ export const deleteReview = async (reviewId: number): Promise<boolean> => {
   return res.ok;
 };
 
-export async function initiatePaytrPayment(address: ShippingAddress, guestEmail?: string, preferredCarrier?: string) {
+export async function initiatePaytrPayment(address: ShippingAddress, guestEmail?: string, preferredCarrier?: string, couponCode?: string) {
   const res = await fetch(`${API_URL}/api/payments/initiate-payment`, {
     method: "POST",
     credentials: 'include', // DEĞİŞİKLİK BURADA
@@ -167,7 +167,7 @@ export async function initiatePaytrPayment(address: ShippingAddress, guestEmail?
       "Content-Type": "application/json",
       ...getAuthHeaders(),
     },
-    body: JSON.stringify({ shippingAddress: address, email: guestEmail, preferredCarrier }),
+    body: JSON.stringify({ shippingAddress: address, email: guestEmail, preferredCarrier, couponCode, }),
   });
 
   if (!res.ok) { 

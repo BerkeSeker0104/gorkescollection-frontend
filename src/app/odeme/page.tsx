@@ -105,7 +105,8 @@ export default function CheckoutPage() {
       const token = await initiatePaytrPayment(
         data,
         isGuest ? guestEmail : undefined,
-        preferredCarrier // << kargo tercihini backend'e gönder
+        preferredCarrier, // << kargo tercihini backend'e gönder
+        cart?.appliedCouponCode || undefined
       );
       if (token) setIframeToken(token);
     } catch (error: any) {
