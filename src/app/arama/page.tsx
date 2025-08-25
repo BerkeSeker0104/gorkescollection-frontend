@@ -1,43 +1,29 @@
-// Dosya: src/app/arama/page.tsx (KESİN ÇÖZÜM)
+// Dosya: src/app/arama/page.tsx (GÜNCELLENMİŞ HALİ)
 
-import { searchProducts } from "@/lib/api";
-import ProductCard from "@/components/ProductCard";
+import { SearchResults } from "@/components/SearchResults";
+import { Suspense } from 'react';
 
 // Bu, Next.js App Router sayfaları için en doğru ve standart tip tanımıdır.
-export default async function SearchPage({
+export default function SearchPage({
   searchParams,
 }: {
   searchParams?: { [key: string]: string | string[] | undefined };
 }) {
-  // searchParams.q bir dizi de olabilir, biz sadece ilk elemanı (string) alıyoruz.
   const queryParam = searchParams?.q;
   const query = Array.isArray(queryParam) ? queryParam[0] : queryParam || "";
 
-  const products = await searchProducts(query);
-
   return (
-    <div className="container mx-auto px-4 py-8 pt-32"> {/* pt-32 header boşluğu için */}
+    <div className="container mx-auto px-4 py-8 pt-32">
       <h1 className="text-3xl font-bold mb-2">Arama Sonuçları</h1>
       <p className="mb-8 text-gray-600">
         <span className="font-semibold">"{query}"</span> için bulunan sonuçlar:
       </p>
 
-      {products.length > 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-16">
-          <p className="text-lg text-gray-700">
-            Maalesef aramanızla eşleşen bir ürün bulunamadı.
-          </p>
-          <p className="text-gray-500 mt-2">
-            Farklı bir anahtar kelime ile tekrar deneyebilirsiniz.
-          </p>
-        </div>
-      )}
+      {/* Veri çekme işlemi sırasında sayfanın geri kalanının yüklenmesi için Suspense kullanıyoruz */}
+      <Suspense fallback={<p>Yükleniyor...</p>}>
+        {/* Asıl işi bu bileşen yapacak */}
+        <SearchResults query={query} />
+      </Suspense>
     </div>
   );
 }
