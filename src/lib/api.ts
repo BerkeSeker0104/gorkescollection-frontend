@@ -47,6 +47,29 @@ const getAuthHeaders = (): HeadersInit => {
 /* HERKESE AÇIK FONKSİYONLAR                                                */
 /* ------------------------------------------------------------------------- */
 
+// YENİ: Ürün arama fonksiyonu
+export const searchProducts = async (query: string): Promise<Product[]> => {
+  // Boş sorgu gönderilmesini engelle
+  if (!query.trim()) {
+    return [];
+  }
+  try {
+    const url = `${API_URL}/api/products/search?q=${encodeURIComponent(query.trim())}`;
+    
+    // Arama sonuçları anlık olmalı, bu yüzden cache kullanmıyoruz.
+    const res = await fetch(url, { cache: 'no-store' });
+
+    if (!res.ok) {
+      console.error('Arama yapılırken sunucu hatası:', res.statusText);
+      return [];
+    }
+    return res.json();
+  } catch (error) {
+    console.error('Arama yapılırken ağ hatası:', error);
+    return [];
+  }
+};
+
 export const getStockNotificationSubscribers = async (
   productId: number
 ): Promise<StockNotificationSubscriber[]> => {
