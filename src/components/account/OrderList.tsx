@@ -67,9 +67,7 @@ export default function OrderList() {
 
                 <div className="divide-y divide-zinc-200">
                   {order.orderItems.map((item) => (
-                    // ======================= MOBİL TASARIM GÜNCELLEMESİ BURADA =======================
                     <div key={item.productId} className="p-4 sm:p-5 flex items-start gap-4">
-                      {/* Sol Taraf: Görsel */}
                       <Image
                         src={item.imageUrl || `https://placehold.co/100x100?text=${encodeURIComponent(item.productName)}`}
                         alt={item.productName}
@@ -77,15 +75,14 @@ export default function OrderList() {
                         height={80}
                         className="w-20 h-20 object-cover rounded-lg border border-zinc-200 flex-shrink-0"
                       />
-                      {/* Sağ Taraf: Bilgiler ve Butonlar */}
                       <div className="flex-grow flex flex-col items-start h-full">
                         <Link href={`/urun/${item.productId}`} className="font-semibold text-zinc-800 hover:text-[#A58E74] transition-colors leading-tight mb-1">
                             {item.productName}
                         </Link>
                         <p className="text-sm text-zinc-500">{item.quantity} x {formatCurrency(item.price)}</p>
                         
-                        {/* Butonlar için bir kapsayıcı */}
-                        <div className="flex items-center gap-4 mt-auto pt-2 text-sm">
+                        {/* DÜZENLEME BURADA: Butonları dikeyde (alt alta) hizalamak için class'lar değiştirildi */}
+                        <div className="flex flex-col items-start gap-2 mt-auto pt-2 text-sm">
                           <Link href={`/urun/${item.productId}`} className="flex items-center gap-1.5 text-zinc-600 hover:text-black transition-colors whitespace-nowrap">
                               <ShoppingBag size={14} /> Tekrar Satın Al
                           </Link>
