@@ -583,6 +583,49 @@ export const shipOrder = async (orderId: number, shippingData: ShipOrderDto): Pr
   }
 };
 
+// --- YENİ SİPARİŞ DURUM GÜNCELLEME FONKSİYONLARI ---
+
+// Tekrarlanan kodu azaltmak için yardımcı bir fonksiyon
+const updateOrderStatus = async (orderId: number, action: 'process' | 'deliver' | 'cancel'): Promise<boolean> => {
+  try {
+    const res = await fetch(`${API_URL}/api/admin/orders/${orderId}/${action}`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    });
+    // Backend'den hata mesajı gelirse yakalayıp fırlat
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      throw new Error(errorData?.detail || errorData?.title || 'İşlem başarısız oldu.');
+    }
+    return true;
+  } catch (error) {
+    console.error(`Sipariş durumu güncellenirken hata (${action}):`, error);
+    // Hatanın UI'da gösterilebilmesi için tekrar fırlat
+    throw error;
+  }
+};
+
+export const markOrderAsProcessing = (orderId: number) => updateOrderStatus(orderId, 'process');
+export const markOrderAsDelivered = (orderId: number) => updateOrderStatus(orderId, 'deliver');
+export const cancelOrder = async (orderId: number): Promise<boolean> => {
+  // CancelOrder'ın stoğu geri ekleme gibi yan etkileri olduğu için
+  // ve daha spesifik hata mesajları dönebileceği için ayrı yönetmek daha güvenli.
+  try {
+    const res = await fetch(`${API_URL}/api/admin/orders/${orderId}/cancel`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      throw new Error(errorData?.detail || errorData?.title || 'Sipariş iptal edilemedi.');
+    }
+    return true;
+  } catch(error) {
+    console.error('Sipariş iptal edilirken hata:', error);
+    throw error;
+  }
+};
+
 export const createCategory = async (categoryData: AdminCategoryDto): Promise<Category | null> => {
   const token = getToken();
   if (!token) return null;
