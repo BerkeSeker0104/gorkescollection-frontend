@@ -331,13 +331,18 @@ export const registerUser = async (data: RegisterData): Promise<{ success: boole
     const response = await fetch(`${API_URL}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      // Gönderilen veri yapısı yeni RegisterData tipine uygun hale getirildi.
+      body: JSON.stringify({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        password: data.password,
+      }),
     });
     
     const result = await response.json();
 
     if (!response.ok) {
-        // Model doğrulama hatalarını birleştir
         const errorMessage = result.errors ? Object.values(result.errors).flat().join(' ') : (result.message || "Bilinmeyen bir hata oluştu.");
         return { success: false, message: errorMessage };
     }

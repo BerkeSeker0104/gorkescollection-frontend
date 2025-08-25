@@ -56,19 +56,26 @@ export interface ShippingAddress {
   phoneNumber: string;
 }
 
+// GÜNCELLENDİ: UserDto'ya FirstName ve LastName eklendi.
 export interface UserDto {
-  username: string;
+  username: string; // Bu alan artık backend'de email ile aynı.
   email: string;
   token: string;
+  firstName: string;
+  lastName: string;
 }
 
 export interface LoginData {
-  username: string;
+  username: string; // Frontend'de bu alan "E-posta" olarak kullanılacak.
   password: string;
 }
 
-export interface RegisterData extends LoginData {
+// GÜNCELLENDİ: RegisterData artık username yerine firstName ve lastName alıyor.
+export interface RegisterData {
+  firstName: string;
+  lastName: string;
   email: string;
+  password: string;
 }
 
 export interface OrderItem {

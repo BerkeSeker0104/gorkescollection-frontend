@@ -8,8 +8,10 @@ import { registerUser } from "@/lib/api";
 import { useState } from "react";
 import Link from "next/link";
 
+// GÜNCELLENDİ: Zod şeması artık username yerine firstName ve lastName içeriyor.
 const registerSchema = z.object({
-    username: z.string().min(3, "Kullanıcı adı en az 3 karakter olmalıdır."),
+    firstName: z.string().min(2, "Ad en az 2 karakter olmalıdır."),
+    lastName: z.string().min(2, "Soyad en az 2 karakter olmalıdır."),
     email: z.string().email("Geçerli bir e-posta adresi girin."),
     password: z.string().min(6, "Parola en az 6 karakter olmalıdır."),
 });
@@ -51,11 +53,20 @@ export default function RegisterPage() {
                                 </div>
                             )}
 
-                            <div>
-                                <label htmlFor="username" className="block text-sm font-medium text-zinc-600">Kullanıcı Adı</label>
-                                <input type="text" {...register("username")} className={inputStyle}/>
-                                {errors.username && <p className="mt-2 text-sm text-red-600">{errors.username.message}</p>}
+                            {/* GÜNCELLENDİ: "Kullanıcı Adı" yerine "Ad" ve "Soyad" alanları eklendi. */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label htmlFor="firstName" className="block text-sm font-medium text-zinc-600">Ad</label>
+                                    <input type="text" {...register("firstName")} className={inputStyle}/>
+                                    {errors.firstName && <p className="mt-2 text-sm text-red-600">{errors.firstName.message}</p>}
+                                </div>
+                                <div>
+                                    <label htmlFor="lastName" className="block text-sm font-medium text-zinc-600">Soyad</label>
+                                    <input type="text" {...register("lastName")} className={inputStyle}/>
+                                    {errors.lastName && <p className="mt-2 text-sm text-red-600">{errors.lastName.message}</p>}
+                                </div>
                             </div>
+
                             <div>
                                 <label htmlFor="email" className="block text-sm font-medium text-zinc-600">E-posta</label>
                                 <input type="email" {...register("email")} className={inputStyle}/>
