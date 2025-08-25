@@ -372,6 +372,26 @@ export const confirmEmail = async (userId: string, token: string): Promise<boole
     }
 };
 
+// YENİ: Doğrulama e-postasını tekrar göndermek için fonksiyon
+export const resendConfirmationEmail = async (email: string): Promise<{ success: boolean; message: string }> => {
+  try {
+    const response = await fetch(`${API_URL}/api/auth/resend-confirmation-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    
+    // Bu endpoint güvenlik nedeniyle her zaman başarılı dönecek şekilde tasarlandı,
+    // bu yüzden sadece cevaptaki mesajı alıp dönüyoruz.
+    const result = await response.json();
+    return { success: response.ok, message: result.message };
+
+  } catch (error) {
+    console.error('Doğrulama e-postası tekrar gönderilirken ağ hatası:', error);
+    return { success: false, message: 'Sunucuya ulaşılamadı. Lütfen tekrar deneyin.' };
+  }
+};
+
 /* ------------------------------------------------------------------------- */
 /* SEPET & SİPARİŞ                                                          */
 /* ------------------------------------------------------------------------- */

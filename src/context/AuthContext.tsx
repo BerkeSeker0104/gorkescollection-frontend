@@ -1,5 +1,3 @@
-// test deploy
-
 'use client';
 
 import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
@@ -8,7 +6,6 @@ import { loginUser } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
 
-// Token'ın içindeki verinin yapısını tanımlıyoruz.
 interface DecodedToken {
     "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": string;
     "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress": string;
@@ -20,7 +17,8 @@ interface AuthContextType {
   user: UserDto | null;
   isAdmin: boolean;
   token: string | null;
-  login: (data: LoginData) => Promise<void>;
+  // GÜNCELLENDİ: login fonksiyonu artık bir string (hata mesajı) veya undefined dönebilir.
+  login: (data: LoginData) => Promise<string | undefined>;
   logout: () => void;
   loading: boolean;
 }
@@ -58,7 +56,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           const storedUser = localStorage.getItem('user');
           if (storedUser) {
-            // DÜZELTME: localStorage'dan okunan user nesnesi artık tam bir UserDto
             setUser(JSON.parse(storedUser));
           }
         } else {
@@ -78,15 +75,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleAuthSuccess = (userData: UserDto) => {
-    // DÜZELTME: localStorage'a userData'nın tamamını kaydediyoruz.
     localStorage.setItem('token', userData.token);
     localStorage.setItem('user', JSON.stringify(userData));
-    
-    // DÜZELTME: State'i de userData'nın tamamıyla güncelliyoruz.
     setUser(userData);
     setToken(userData.token);
     
-    // isAdmin durumunu token'dan anlık olarak ayarla
     try {
       const decodedToken: DecodedToken = jwtDecode(userData.token);
       const roleClaim = decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
@@ -99,13 +92,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/hesabim');
   };
 
+  // GÜNCELLENDİ: login fonksiyonu artık alert göstermek yerine hata mesajını geri döndürüyor.
   const login = async (data: LoginData) => {
-    const result = await loginUser(data); 
-
-    if (result.user) {
-      handleAuthSuccess(result.user);
-    } else {
-      alert(result.error || "Giriş başarısız. Lütfen bilgilerinizi kontrol edin.");
+    try {
+      const result = await loginUser(data); 
+      if (result.user) {
+        handleAuthSuccess(result.user);
+        return undefined; // Başarılı durumda bir şey döndürme
+      } else {
+        // Hata durumunda, hata mesajını LoginPage'in yakalaması için return et.
+        return result.error || "Giriş başarısız. Lütfen bilgilerinizi kontrol edin.";
+      }
+    } catch (err: any) {
+        console.error("Login context error:", err);
+        return err.message || "Beklenmedik bir hata oluştu.";
     }
   };
 
