@@ -1,7 +1,8 @@
 // src/app/iletisim/page.tsx
 
 import Image from "next/image";
-import { Mail, Phone } from 'lucide-react';
+import { Mail, Phone, MapPin } from 'lucide-react';
+
 
 export default function ContactPage() {
     return (
@@ -59,14 +60,14 @@ export default function ContactPage() {
 
                                     {/* Adres */}
                                     <div className="flex items-start gap-4">
-                                        <div className="bg-gray-100 p-3 rounded-full">
-                                            📍
-                                        </div>
-                                        <div>
-                                            <h3 className="font-medium text-gray-800">Adres</h3>
-                                            <p className="text-gray-600">
-                                                Kanarya Mahallesi, 1.Çalıkuşu Sokak, No:123, 34290 Küçükçekmece / İstanbul
-                                            </p>
+                                    <div className="bg-gray-100 p-3 rounded-full">
+                                        <MapPin size={24} className="text-gray-600" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-medium text-gray-800">Adres</h3>
+                                        <p className="text-gray-600">
+                                        Kanarya Mahallesi, 1. Çalıkuşu Sokak, No:37/39, Daire:123, 34290 Küçükçekmece / İstanbul
+                                        </p>
                                         </div>
                                     </div>
                                 </div>
