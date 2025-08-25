@@ -29,9 +29,10 @@ export default function ProfileInfo() {
   return (
     <div className="divide-y divide-gray-200">
       <div className="space-y-4 pb-8">
+        {/* GÜNCELLENDİ: "Kullanıcı Adı" yerine "Ad Soyad" gösteriliyor. */}
         <div>
-          <label className="text-sm font-medium text-zinc-500">Kullanıcı Adı</label>
-          <p className="text-zinc-800 mt-1">{user?.username}</p>
+          <label className="text-sm font-medium text-zinc-500">Ad Soyad</label>
+          <p className="text-zinc-800 mt-1">{`${user?.firstName || ''} ${user?.lastName || ''}`}</p>
         </div>
         <div>
           <label className="text-sm font-medium text-zinc-500">E-posta</label>
