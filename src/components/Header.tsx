@@ -1,3 +1,5 @@
+// Dosya: src/components/Header.tsx (TAM VE GÜNCELLENMİŞ HALİ)
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -10,6 +12,7 @@ import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { getCategories } from '@/lib/api';
 import { Category } from '@/types';
+import { SearchBar } from './SearchBar'; // YENİ: SearchBar bileşenini import et
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -93,11 +96,14 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Sağ aksiyonlar: Masaüstü (Search yok) */}
+        {/* Sağ aksiyonlar: Masaüstü */}
         <div className={clsx(
           'absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 items-center space-x-5 transition-opacity duration-500',
           { 'hidden md:flex opacity-100': isMinimal, 'hidden md:flex opacity-0 pointer-events-none': !isMinimal }
         )}>
+          {/* YENİ: Arama çubuğu masaüstü için eklendi */}
+          <SearchBar />
+
           {user ? (
             <>
               <Link href="/hesabim" className="hover:opacity-75 text-gray-800" aria-label="Hesabım"><User size={22} /></Link>
@@ -133,42 +139,29 @@ const Header = () => {
       {/* Mobil panel */}
       <div className={clsx(
         'md:hidden overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out bg-[#fff9f9] shadow',
-        mobileOpen ? 'max-height:max max-h-96 opacity-100' : 'max-h-0 opacity-0'
+        mobileOpen ? 'max-h-[500px]' : 'max-h-0 opacity-0' // max-h değeri artırıldı
       )}>
-        {/* Kategoriler: yatay kaydırmalı chip’ler */}
-<nav className="px-4 py-3 border-b border-gray-200">
-  <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap">
-    <Link
-      href="/yeni-gelenler"
-      className={clsx(
-        "inline-flex items-center rounded-full border px-4 py-2 text-sm hover:bg-gray-100",
-        pathname === "/yeni-gelenler"
-          ? "bg-gray-900 text-white shadow-sm border-transparent"
-          : "border-gray-300 text-gray-800"
-      )}
-    >
-      Yeni Gelenler
-    </Link>
-    {categories.map((c) => {
-      const categoryPath = `/${c.slug}`;
-      return (
-        <Link
-          key={c.id}
-          href={categoryPath}
-          className={clsx(
-            "inline-flex items-center rounded-full border px-4 py-2 text-sm hover:bg-gray-100",
-            pathname === categoryPath
-              ? "bg-gray-900 text-white shadow-sm border-transparent"
-              : "border-gray-300 text-gray-800"
-          )}
-        >
-          {c.name}
-        </Link>
-      );
-    })}
-  </div>
-</nav>
+        {/* YENİ: Mobil arama çubuğu eklendi */}
+        <div className="p-4 border-b border-gray-200">
+          <SearchBar />
+        </div>
 
+        {/* Kategoriler: yatay kaydırmalı chip’ler */}
+        <nav className="px-4 py-3 border-b border-gray-200">
+            <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap">
+                <Link href="/yeni-gelenler" className={clsx( "inline-flex items-center rounded-full border px-4 py-2 text-sm hover:bg-gray-100", pathname === "/yeni-gelenler" ? "bg-gray-900 text-white shadow-sm border-transparent" : "border-gray-300 text-gray-800" )}>
+                    Yeni Gelenler
+                </Link>
+                {categories.map((c) => {
+                    const categoryPath = `/${c.slug}`;
+                    return (
+                        <Link key={c.id} href={categoryPath} className={clsx( "inline-flex items-center rounded-full border px-4 py-2 text-sm hover:bg-gray-100", pathname === categoryPath ? "bg-gray-900 text-white shadow-sm border-transparent" : "border-gray-300 text-gray-800" )}>
+                            {c.name}
+                        </Link>
+                    );
+                })}
+            </div>
+        </nav>
 
         {/* Kullanıcı/ikonlar + SEPET vurgulu */}
         <div className="px-4 py-3 flex items-center gap-4">

@@ -9,13 +9,12 @@ import { Category } from "@/types";
 import { useRef, useState } from "react";
 import { uploadToCloudinary } from "@/lib/uploadToCloudinary";
 
-/** ---------------- Zod Şema ----------------
- *  - isFeatured: zorunlu boolean
- *  - İndirim alanları opsiyonel
- *  - saleType seçilmişse saleValue > 0 olmalı
- */
+// GÜNCELLENDİ: Zod Şeması
 const productSchema = z
   .object({
+    // YENİ ALAN
+    sku: z.string().min(1, "Ürün Kodu (SKU) gerekli"),
+
     name: z.string().min(1, "Ürün adı gerekli"),
     description: z.string().min(1, "Açıklama gerekli"),
     price: z.number().min(0, "Fiyat 0'dan küçük olamaz"),
@@ -31,18 +30,20 @@ const productSchema = z
       })
     ),
     isFeatured: z.boolean(),
+    
+    // YENİ ALAN
+    displayOrder: z.number().min(0, "Sıralama negatif olamaz").nullable().optional(),
 
     // --- İndirim alanları ---
     saleType: z.enum(["percentage", "amount"]).nullable().optional(),
     saleValue: z.number().min(0, "Negatif olamaz").nullable().optional(),
-    // datetime-local -> string (YYYY-MM-DDTHH:mm) tutuyoruz, submit'te ISO'ya çeviriyoruz
     saleStartUtc: z.string().nullable().optional(),
     saleEndUtc: z.string().nullable().optional(),
     saleLabel: z.string().max(32, "En fazla 32 karakter").nullable().optional(),
   })
   .refine(
     (d) => {
-      if (!d.saleType) return true; // indirim yoksa sorun yok
+      if (!d.saleType) return true;
       return typeof d.saleValue === "number" && d.saleValue > 0;
     },
     { path: ["saleValue"], message: "İndirim değeri zorunlu ve 0'dan büyük olmalı" }
@@ -75,7 +76,9 @@ export default function ProductForm({
     formState: { errors },
   } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
+    // GÜNCELLENDİ: Varsayılan Değerler
     defaultValues: initialData || {
+      sku: "", // YENİ
       name: "",
       description: "",
       price: 0,
@@ -84,6 +87,7 @@ export default function ProductForm({
       imageUrls: [""],
       specifications: [],
       isFeatured: false,
+      displayOrder: null, // YENİ
 
       // İndirim defaultları
       saleType: null,
@@ -168,14 +172,11 @@ export default function ProductForm({
   /* -------------- Submit -------------- */
   const toIsoOrNull = (localStr: string | null | undefined) => {
     if (!localStr) return null;
-    // "YYYY-MM-DDTHH:mm" formatı -> Local zamana göre Date -> ISO UTC
     const d = new Date(localStr);
     return isNaN(d.getTime()) ? null : d.toISOString();
-    // İstersen: return localStr + ":00Z" gibi kaba ekleme yapmayalım, Date dönüştürsün.
   };
 
   const submitHandler: SubmitHandler<ProductFormData> = async (data) => {
-    // Görselleri ve spec'leri temizle
     const cleanedImageUrls = (data.imageUrls || [])
       .map((u) => u.trim())
       .filter(Boolean);
@@ -192,7 +193,6 @@ export default function ProductForm({
       return;
     }
 
-    // İndirim temizliği: saleType yoksa ilgili alanları null’a çek
     let saleTypeFinal = data.saleType ?? null;
     let saleValueFinal =
       saleTypeFinal ? (typeof data.saleValue === "number" ? data.saleValue : null) : null;
@@ -236,6 +236,32 @@ export default function ProductForm({
         )}
       </div>
 
+      {/* YENİ BÖLÜM: SKU ve Sıralama */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Ürün Kodu (SKU)</label>
+          <input
+            {...register("sku")}
+            className="w-full border rounded px-3 py-2"
+            placeholder="Örn: GK-KOLYE-001"
+          />
+          {errors.sku && <p className="text-red-600 text-sm mt-1">{errors.sku.message}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Sıralama Önceliği (ops.)</label>
+          <input
+            type="number"
+            {...register("displayOrder", {
+              setValueAs: (v) => (v === "" || v === null ? null : Number(v)),
+            })}
+            className="w-full border rounded px-3 py-2"
+            placeholder="Düşük numara üste gelir"
+          />
+          {errors.displayOrder && <p className="text-red-600 text-sm mt-1">{errors.displayOrder.message}</p>}
+        </div>
+      </div>
+      
       {/* Fiyat & Stok */}
       <div className="grid grid-cols-2 gap-4">
         <div>
