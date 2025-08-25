@@ -12,6 +12,7 @@ export interface Product {
   saleStartUtc?: string | null;
   saleEndUtc?: string | null;
   stockQuantity: number;
+  displayOrder?: number | null;
   categoryName: string;
   categoryId: number;
   categorySlug: string;
@@ -169,7 +170,6 @@ export interface StockNotificationSubscriber {
   requestDate: string; // ISO date string
 }
 
-// --- YENİ EKLENEN ARAYÜZ ---
 export interface Coupon {
   id: number;
   code: string;
