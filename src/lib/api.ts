@@ -19,7 +19,7 @@ import {
   StockNotificationSubscriber,
   Coupon,
 } from '@/types';
-import Cookies from 'js-cookie';
+
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 // YENİ MERKEZİ FONKSİYON: Token'ı localStorage'dan al
@@ -162,6 +162,7 @@ export async function initiatePaytrPayment(address: ShippingAddress, guestEmail?
   const res = await fetch(`${API_URL}/api/payments/initiate-payment`, {
     method: "POST",
     credentials: 'include', // DEĞİŞİKLİK BURADA
+    cache: "no-store",
     headers: {
       "Content-Type": "application/json",
       ...getAuthHeaders(),
