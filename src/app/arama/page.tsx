@@ -1,15 +1,15 @@
-// Dosya: src/app/arama/page.tsx (YENİ DOSYA)
+// Dosya: src/app/arama/page.tsx (TAM VE DÜZELTİLMİŞ HALİ)
 
 import { searchProducts } from "@/lib/api";
 import ProductCard from "@/components/ProductCard";
 
-interface SearchPageProps {
-  searchParams: {
-    q?: string;
-  };
-}
+// 'interface SearchPageProps' tanımını sildik.
 
-export default async function SearchPage({ searchParams }: SearchPageProps) {
+export default async function SearchPage({
+  searchParams,
+}: {
+  searchParams: { q?: string };
+}) {
   const query = searchParams.q || "";
   const products = await searchProducts(query);
 
