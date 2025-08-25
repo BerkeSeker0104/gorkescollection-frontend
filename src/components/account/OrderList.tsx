@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { getOrders } from '@/lib/api';
 import type { Order } from '@/types';
-import { Truck, ShoppingBag, Star } from 'lucide-react'; // İkonları import edelim
+import { Truck, ShoppingBag, Star } from 'lucide-react';
 import clsx from 'clsx';
 
 export default function OrderList() {
@@ -16,7 +16,6 @@ export default function OrderList() {
     const run = async () => {
       setLoading(true);
       const fetched = await getOrders();
-      // Siparişleri en yeniden eskiye doğru sırala
       setOrders(fetched.sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime()));
       setLoading(false);
     };
@@ -33,7 +32,12 @@ export default function OrderList() {
     }
   };
 
-  const formatCurrency = (amount: number) => {
+  // GÜNCELLENDİ: Bu fonksiyon artık tanımsız/null değerlere karşı güvenli.
+  const formatCurrency = (amount?: number | null) => {
+    // Eğer 'amount' bir sayı değilse, varsayılan olarak 0'ı formatla.
+    if (typeof amount !== 'number') {
+      return (0).toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
+    }
     return amount.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
   };
 
@@ -47,7 +51,6 @@ export default function OrderList() {
             const statusInfo = translateStatus(order.orderStatus);
             return (
               <div key={order.id} className="bg-white rounded-xl shadow-sm border border-zinc-200 overflow-hidden">
-                {/* Kart Başlığı: Özet Bilgiler */}
                 <div className="bg-zinc-50 p-4 sm:p-5 border-b border-zinc-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="flex items-center gap-4">
                      <div>
@@ -63,7 +66,6 @@ export default function OrderList() {
                   </div>
                 </div>
 
-                {/* Ürün Listesi */}
                 <div className="divide-y divide-zinc-200">
                   {order.orderItems.map((item) => (
                     <div key={item.productId} className="p-4 sm:p-5 flex items-start sm:items-center gap-4">
@@ -94,7 +96,6 @@ export default function OrderList() {
                   ))}
                 </div>
 
-                {/* Kargo Bilgisi */}
                 {order.trackingNumber && (
                    <div className="bg-zinc-50 p-4 sm:p-5 border-t border-zinc-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                       <div className="flex items-center gap-2 text-sm text-zinc-600">
