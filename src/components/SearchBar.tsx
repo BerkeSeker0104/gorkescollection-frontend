@@ -1,4 +1,4 @@
-// Dosya: src/components/SearchBar.tsx (YENİ DOSYA)
+// Dosya: src/components/SearchBar.tsx (MOBİL TASARIM DÜZELTİLMİŞ HALİ)
 
 'use client';
 
@@ -14,13 +14,13 @@ export const SearchBar = () => {
     e.preventDefault();
     const trimmedQuery = query.trim();
     if (trimmedQuery) {
-      // Kullanıcıyı arama sonuçları sayfasına yönlendir
       router.push(`/arama?q=${encodeURIComponent(trimmedQuery)}`);
     }
   };
 
   return (
-    <form onSubmit={handleSearch} className="relative w-full max-w-xs" role="search">
+    // DEĞİŞİKLİK BURADA: max-w-xs sınıfını md:max-w-xs yaparak sadece masaüstünde geçerli kıldık.
+    <form onSubmit={handleSearch} className="relative w-full md:max-w-xs" role="search">
       <input
         type="search"
         value={query}

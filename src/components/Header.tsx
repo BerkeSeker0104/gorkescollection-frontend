@@ -1,4 +1,4 @@
-// Dosya: src/components/Header.tsx (TASARIM HATASI GİDERİLMİŞ HALİ)
+// Dosya: src/components/Header.tsx (SON HİZALAMA DÜZELTMESİ)
 
 'use client';
 
@@ -63,7 +63,6 @@ const Header = () => {
       )} />
 
       <div className="container mx-auto px-4 sm:px-6 h-full relative">
-        {/* LOGO (Bu bölüm aynı kalıyor) */}
         <div className={clsx('absolute top-1/2 transition-all duration-500 ease-in-out', {
           'left-4 sm:left-6 -translate-y-1/2': isMinimal,
           'left-1/2 -translate-x-1/2 -translate-y-[60%]': !isMinimal
@@ -80,26 +79,18 @@ const Header = () => {
           </Link>
         </div>
 
-        {/* ======================= DEĞİŞİKLİK BURADA BAŞLIYOR ======================= */}
-        {/* Navigasyon ve Sağ Aksiyonları tek bir Flexbox kapsayıcısında birleştirdik. */}
-        
-        {/* Ana Kapsayıcı (Hem Navigasyon Hem Aksiyonlar İçin) */}
         <div className={clsx(
           'absolute top-1/2 -translate-y-1/2 transition-all duration-500 ease-in-out',
-          'hidden md:flex items-center', // Her zaman flex ve ortalı
+          'hidden md:flex items-center',
           {
-            // Minimal modda: Sağ tarafta, logodan sonra başlar
             'left-[200px] right-4': isMinimal,
-            // Geniş modda: Ortada, logo altında
-            'left-1/2 -translate-x-1/2 top-1/2 translate-y-[80%]': !isMinimal
+            'left-1/2 -translate-x-1/2 top-1/2 translate-y-[80%] w-full': !isMinimal // w-full eklendi
           }
         )}>
-
-          {/* NAV: Masaüstü (Artık kendi başına absolute değil) */}
-          <nav className="flex-grow"> {/* Alanın kalanını kaplaması için */}
+          <nav className="flex-grow">
             <div className={clsx('flex flex-nowrap items-center space-x-6 whitespace-nowrap transition-colors duration-300', {
-              'text-white justify-center': !isMinimal, // Geniş modda ortalı
-              'text-gray-800 justify-start': isMinimal // Minimal modda soldan başlar
+              'text-white justify-center': !isMinimal,
+              'text-gray-800 justify-start': isMinimal
             })}>
               <Link href="/yeni-gelenler" className="hover:opacity-75">Yeni Gelenler</Link>
               {categories.map(c => (
@@ -108,10 +99,10 @@ const Header = () => {
             </div>
           </nav>
 
-          {/* Sağ aksiyonlar: Masaüstü (Artık kendi başına absolute değil) */}
+          {/* DÜZELTME BURADA: opacity-0 yerine 'hidden' kullanarak elemanı tamamen layout'tan kaldırıyoruz */}
           <div className={clsx(
-            'flex items-center space-x-5 flex-shrink-0', // Küçülmesini engelle
-            { 'opacity-100': isMinimal, 'opacity-0 pointer-events-none': !isMinimal }
+            'items-center space-x-5 flex-shrink-0',
+            { 'flex': isMinimal, 'hidden': !isMinimal }
           )}>
             <SearchBar />
             {user ? (
@@ -133,10 +124,7 @@ const Header = () => {
             </Link>
           </div>
         </div>
-        {/* ======================= DEĞİŞİKLİK BURADA BİTİYOR ======================= */}
 
-
-        {/* Mobil: hamburger (Bu bölüm aynı kalıyor) */}
         <div className="absolute right-3 top-1/2 -translate-y-1/2 md:hidden">
           <button
             type="button"
@@ -149,7 +137,6 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Mobil panel (Bu bölüm aynı kalıyor) */}
       <div className={clsx(
         'md:hidden overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out bg-[#fff9f9] shadow',
         mobileOpen ? 'max-h-[500px]' : 'max-h-0 opacity-0'
