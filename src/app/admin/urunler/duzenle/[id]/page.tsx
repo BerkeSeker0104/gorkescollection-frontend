@@ -79,28 +79,44 @@ export default function EditProductPage() {
       value: String(value ?? ""),
     }));
 
+    // imageUrls her zaman string[]
+    const imageUrls: string[] = Array.isArray((product as any).imageUrls)
+      ? ((product as any).imageUrls.filter(Boolean) as string[])
+      : [];
+
+    // saleType union'a indir
+    const rawSaleType = (product as any).saleType;
+    const saleType: "percentage" | "amount" | null =
+      rawSaleType === "percentage" || rawSaleType === "amount" ? rawSaleType : null;
+
+    // saleValue number | null
+    const rawSaleValue = (product as any).saleValue;
+    const saleValue: number | null =
+      typeof rawSaleValue === "number" ? rawSaleValue : null;
+
     return {
-      name: product.name ?? "",
-      description: (product as any).description ?? "",
-      price: Number((product as any).price) || 0,
-      stockQuantity: Number((product as any).stockQuantity) || 0,
+      // ZORUNLU ALAN: sku (eksikse boş string ver)
+      sku: (product as any).sku ?? "",
+
+      name: String(product.name ?? ""),
+      description: String((product as any).description ?? ""),
+      price: Number((product as any).price ?? 0),
+      stockQuantity: Number((product as any).stockQuantity ?? 0),
       categoryId: resolveCategoryId(product, categories),
-      imageUrls:
-        (product as any).imageUrls && (product as any).imageUrls.length > 0
-          ? (product as any).imageUrls
-          : [""],
+      imageUrls,
       specifications: specsArray,
       isFeatured: Boolean((product as any).isFeatured),
 
       // --- İNDİRİM ALANLARI (Form şemanla uyumlu) ---
-      saleType: ((product as any).saleType ?? null) as "percentage" | "amount" | null,
-      saleValue:
-        typeof (product as any).saleValue === "number"
-          ? (product as any).saleValue
-          : null,
+      saleType,
+      saleValue,
       saleStartUtc: toLocalInput((product as any).saleStartUtc),
       saleEndUtc: toLocalInput((product as any).saleEndUtc),
-      saleLabel: (product as any).saleLabel ?? null,
+      // opsiyonel alan; string ya da null bırak
+      saleLabel:
+        (product as any).saleLabel === undefined || (product as any).saleLabel === null
+          ? null
+          : String((product as any).saleLabel),
     };
   }, [product, categories]);
 
@@ -161,7 +177,6 @@ export default function EditProductPage() {
 
         {/* --- YENİ EKLENEN BÖLÜM --- */}
         <SubscriberList productId={productId} />
-        
       </div>
     </div>
   );
