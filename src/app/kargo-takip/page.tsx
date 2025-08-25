@@ -5,7 +5,7 @@ import Link from "next/link";
 import { FaWhatsapp } from "react-icons/fa"; // WhatsApp ikonu için (npm install react-icons)
 
 export default function KargoTakipPage() {
-  const whatsappNumber = "905000000000"; // Buraya kendi WhatsApp numaranızı yazın (örn: 905321234567)
+  const whatsappNumber = "905308331705"; 
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent("Merhaba, kargo takibi hakkında bilgi almak istiyorum.")}`;
 
   return (
