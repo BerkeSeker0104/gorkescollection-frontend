@@ -2,7 +2,6 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
-// GÜNCELLENDİ: useState ve Menu ikonu import edildi
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { Home, Package, Layers, ShoppingCart, Settings, Ticket, LogOut, Menu } from 'lucide-react';
@@ -21,7 +20,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   
-  // YENİ: Mobil menünün açık/kapalı durumunu tutmak için state eklendi
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -30,7 +28,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     }
   }, [isAdmin, loading, router]);
   
-  // YENİ: Sayfa değiştiğinde mobil menüyü kapat
   useEffect(() => {
     setSidebarOpen(false);
   }, [pathname]);
@@ -39,10 +36,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     return <div className="pt-40 text-center">Yönlendiriliyor...</div>;
   }
 
+  // GÜNCELLENDİ: En dıştaki div'e class'lar eklendi
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* YENİ: Mobil için Menü Butonu (Hamburger İkonu) */}
-      <div className="md:hidden flex items-center justify-between bg-white border-b border-gray-200 fixed top-20 left-0 right-0 h-16 px-4 z-20">
+    <div className="min-h-screen bg-gray-100 relative z-40"> {/* z-index artırıldı */}
+      {/* Mobil için Menü Butonu */}
+      <div className="md:hidden flex items-center justify-between bg-white border-b border-gray-200 fixed top-[80px] left-0 right-0 h-16 px-4 z-20"> {/* top-20 -> top-[80px] */}
          <span className="text-lg font-semibold text-gray-800">Admin Paneli</span>
          <button onClick={() => setSidebarOpen(true)} className="p-2">
             <Menu size={24} />
@@ -50,7 +48,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       </div>
 
       <div className="flex">
-        {/* YENİ: Menü açıkken içeriği karartan ve tıklayınca menüyü kapatan overlay */}
         {sidebarOpen && (
           <div 
             className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
@@ -58,8 +55,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           ></div>
         )}
 
-        {/* GÜNCELLENDİ: Sol Taraf: Yan Menü (Sidebar) */}
-        <aside className={`w-64 bg-white border-r border-gray-200 fixed top-20 left-0 h-[calc(100vh-80px)] p-4 flex flex-col justify-between
+        {/* Yan Menü */}
+        {/* top-20 -> top-[80px] (Ana header'ın yüksekliği) */}
+        <aside className={`w-64 bg-white border-r border-gray-200 fixed top-[80px] left-0 h-[calc(100vh-80px)] p-4 flex flex-col justify-between
                            transition-transform duration-300 ease-in-out z-40
                            md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
           <nav className="space-y-2">
@@ -97,8 +95,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           </div>
         </aside>
 
-        {/* GÜNCELLENDİ: Sağ Taraf: Ana İçerik */}
-        <main className="flex-1 md:ml-64 p-8 pt-24 md:pt-8">
+        {/* Ana İçerik */}
+        {/* pt-20 (80px) ana header için, pt-16 (64px) mobil admin header için boşluk bırakır */}
+        <main className="flex-1 md:ml-64 p-8 pt-[144px] md:pt-[80px]"> 
           {children}
         </main>
       </div>
