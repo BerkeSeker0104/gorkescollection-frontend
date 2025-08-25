@@ -439,14 +439,45 @@ export const removeFromCart = async (productId: number, quantity: number): Promi
   try {
     const res = await fetch(`${API_URL}/api/cart/items`, {
       method: 'DELETE',
-      credentials: 'include', // DEĞİŞİKLİK BURADA
+      credentials: 'include',
+      cache: 'no-store',
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
       body: JSON.stringify({ productId, quantity }),
     });
-    if (!res.ok) return null;
-    return res.json();
+
+    // Backend 204 (No Content) veya boş body döndürebilir → güncel sepeti yeniden çek
+    if (res.status === 204) {
+      return await getCart();
+    }
+
+    const contentType = res.headers.get('content-type') || '';
+    const text = await res.text();
+
+    // Hata durumunu JSON/boş cevapla güvenli ele al
+    if (!res.ok) {
+      try {
+        const err = text ? JSON.parse(text) : null;
+        const msg = err?.message || err?.detail || err?.title || `Sepetten çıkarılamadı (HTTP ${res.status}).`;
+        throw new Error(msg);
+      } catch {
+        throw new Error(`Sepetten çıkarılamadı (HTTP ${res.status}).`);
+      }
+    }
+
+    // Başarılı ama gövde boş → yine güvenli yol: sepeti yeniden çek
+    if (!text) {
+      return await getCart();
+    }
+
+    // JSON ise parse et, değilse yine sepeti yeniden çek
+    if (contentType.includes('application/json')) {
+      return JSON.parse(text) as CartDto;
+    }
+    return await getCart();
   } catch (e) {
-    return null;
+    console.error('removeFromCart hata:', e);
+    // Ağ/parse hatasında da gerçek durumu senkronlamak için sepeti çek
+    return await getCart();
   }
 };
 
