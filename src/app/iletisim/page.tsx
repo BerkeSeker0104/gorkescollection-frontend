@@ -1,22 +1,7 @@
-import { Mail, Phone, Instagram, Facebook } from 'lucide-react';
+// src/app/iletisim/page.tsx
 
-// TikTok ikonu için özel bir SVG bileşeni oluşturuyoruz, çünkü lucide-react'te mevcut değil.
-const TiktokIcon = ({ size = 24, className = "" }) => (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M16 8.11V4h-5v12.55a4.5 4.5 0 1 1-5.03-5.45A4.5 4.5 0 1 1 16 9.55Z" />
-    </svg>
-  );
+import Image from "next/image";
+import { Mail, Phone } from 'lucide-react';
 
 export default function ContactPage() {
     return (
@@ -41,33 +26,48 @@ export default function ContactPage() {
                                 <div>
                                     <h2 className="text-2xl font-semibold text-gray-800 mb-4">İletişim Bilgileri</h2>
                                     
-                                    <div className="flex items-center gap-4">
+                                    {/* E-posta */}
+                                    <div className="flex items-center gap-4 mb-6">
                                         <div className="bg-gray-100 p-3 rounded-full">
                                             <Mail size={24} className="text-gray-600" />
                                         </div>
                                         <div>
                                             <h3 className="font-medium text-gray-800">E-posta</h3>
-                                            <a href="mailto:info@gorkescollection.com" className="text-gray-600 hover:text-gray-900">
+                                            <a href="mailto:gorkescollection@gmail.com" className="text-gray-600 hover:text-gray-900">
                                                 gorkescollection@gmail.com
                                             </a>
                                         </div>
                                     </div>
-                                </div>
-                                
-                                <div className="flex items-center gap-4">
-                                    <div className="bg-gray-100 p-3 rounded-full">
-                                        <Phone size={24} className="text-gray-600" />
+
+                                    {/* Telefon */}
+                                    <div className="flex items-center gap-4 mb-6">
+                                        <div className="bg-gray-100 p-3 rounded-full">
+                                            <Phone size={24} className="text-gray-600" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-medium text-gray-800">Telefon (Whatsapp)</h3>
+                                            <a 
+                                              href="https://wa.me/905308331705"
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-gray-600 hover:text-gray-900"
+                                            >
+                                                +90 530 833 17 05
+                                            </a>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 className="font-medium text-gray-800">Telefon (Whatsapp)</h3>
-                                        <a 
-                                          href="https://wa.me/905308331705" // Numarayı uluslararası formatta (+ olmadan) yazın
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="text-gray-600 hover:text-gray-900"
-                                        >
-                                            +90 530 833 17 05
-                                        </a>
+
+                                    {/* Adres */}
+                                    <div className="flex items-start gap-4">
+                                        <div className="bg-gray-100 p-3 rounded-full">
+                                            📍
+                                        </div>
+                                        <div>
+                                            <h3 className="font-medium text-gray-800">Adres</h3>
+                                            <p className="text-gray-600">
+                                                Kanarya Mahallesi, 1.Çalıkuşu Sokak, No:123, 34290 Küçükçekmece / İstanbul
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -79,23 +79,34 @@ export default function ContactPage() {
                                     En yeni tasarımlarımızı ve kampanyalarımızı kaçırmamak için bizi sosyal medyada takip edin.
                                 </p>
                                 <div className="flex space-x-6">
+                                    {/* Instagram */}
                                     <a 
                                       href="https://www.instagram.com/gorkescollection/" 
-                                      className="text-gray-500 hover:text-gray-800"
                                       target="_blank"
                                       rel="noopener noreferrer"
                                     >
                                         <span className="sr-only">Instagram</span>
-                                        <Instagram size={28} />
+                                        <Image 
+                                          src="/images/social-media/instagram.png" 
+                                          alt="Instagram"
+                                          width={28} 
+                                          height={28} 
+                                        />
                                     </a>
-                                    <a href="#" className="text-gray-500 hover:text-gray-800">
-                                        <span className="sr-only">Facebook</span>
-                                        <Facebook size={28} />
-                                    </a>
-                                    {/* DEĞİŞİKLİK BURADA: Twitter'ı TikTok ile değiştirdik */}
-                                    <a href="#" className="text-gray-500 hover:text-gray-800">
-                                        <span className="sr-only">Tiktok</span>
-                                        <TiktokIcon size={28} />
+
+                                    {/* TikTok */}
+                                    <a 
+                                      href="https://www.tiktok.com/@gorkescollection" 
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                        <span className="sr-only">TikTok</span>
+                                        <Image 
+                                          src="/images/social-media/tiktok.png" 
+                                          alt="TikTok"
+                                          width={28} 
+                                          height={28} 
+                                        />
                                     </a>
                                 </div>
                             </div>
