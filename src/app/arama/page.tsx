@@ -1,16 +1,18 @@
-// Dosya: src/app/arama/page.tsx (TAM VE DÜZELTİLMİŞ HALİ)
+// Dosya: src/app/arama/page.tsx (KESİN ÇÖZÜM)
 
 import { searchProducts } from "@/lib/api";
 import ProductCard from "@/components/ProductCard";
 
-// 'interface SearchPageProps' tanımını sildik.
-
+// Bu, Next.js App Router sayfaları için en doğru ve standart tip tanımıdır.
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: { q?: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
 }) {
-  const query = searchParams.q || "";
+  // searchParams.q bir dizi de olabilir, biz sadece ilk elemanı (string) alıyoruz.
+  const queryParam = searchParams?.q;
+  const query = Array.isArray(queryParam) ? queryParam[0] : queryParam || "";
+
   const products = await searchProducts(query);
 
   return (
