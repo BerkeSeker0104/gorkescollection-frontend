@@ -29,25 +29,25 @@ export default async function HomePage() {
       slug: 'kolyeler',
       image: '/kolye-kategori.png',
       description:
-        'Her detayı zarafetle tasarlanmış kolyelerimiz, günlük stilinize özel bir dokunuş katıyor. Minimal çizgilerden cesur parıltılara kadar uzanan koleksiyonumuzla anılarını ışıldat.',
+        'Işıltısıyla dikkat çeken kolyeler, zarafeti ve şıklığı bir araya getirerek her anınıza eşsiz bir dokunuş katar.',
     },
     {
       slug: 'bileklikler',
       image: '/bileklik-kategori.png',
       description:
-        'Ruh halini yansıtan bilekliklerle tanış. İster zarif bir sade görünüm, ister neşeli renk detayları… Bu koleksiyonda her anın ruhu var.',
+        'Stilinizi güçlendiren bileklikler, zarif detaylarıyla günlük kombinlerinize ya da özel anlarınıza kusursuz uyum sağlar.',
     },
     {
       slug: 'yuzukler',
       image: '/yuzuk-kategori.png',
       description:
-        'Zarif bir dokunuşla gelen özgüven. Tek taşın sade şıklığından, çok taşlı tasarımların güçlü duruşuna kadar… Tarzını tamamlayan yüzüklerle her bakışta fark yarat.',
+        'Her bakışta farklı bir anlam taşıyan yüzükler, zarafet ve özgüveni buluşturarak stilinizi unutulmaz hale getirir.',
     },
     {
       slug: 'kupeler', 
       image: '/kupe-kategori.png',
       description:
-        'Zarif ve modern tasarımlarıyla küpelerimiz, stilinizi tamamlayan en özel detay. Günlük kullanımdan davetlere kadar her anınıza eşlik eder.',
+        'Zarif ve modern çizgilere sahip küpeler, her ortamda göz kamaştırır ve görünümünüzü özel bir şıklıkla tamamlar.',
     },
   ];
 
