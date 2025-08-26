@@ -420,9 +420,10 @@ export const addToCart = async (productId: number, quantity: number): Promise<Ca
   try {
     const res = await fetch(`${API_URL}/api/cart/items`, {
       method: 'POST',
-      credentials: 'include', // DEĞİŞİKLİK BURADA
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
       body: JSON.stringify({ productId, quantity }),
+      cache: 'no-store', // DEĞİŞİKLİK BURADA
     });
     if (!res.ok) {
         const errorData = await res.json();
