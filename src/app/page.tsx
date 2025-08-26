@@ -1,4 +1,5 @@
-// Dosya Yolu: src/app/page.tsx
+// Dosya Yolu: src/app/page.tsx (Güncellenmiş Hali)
+
 import { Category } from '@/types';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -7,7 +8,6 @@ import { getProducts, getCategories, getFeaturedProducts } from '@/lib/api';
 import ProductMarquee from '@/components/ProductMarquee';
 import NewestGridPager from "@/components/NewestGridPager";
 
-// Öne çıkan kategori tipi (statik görsel+açıklama ile DB'deki category birleşiyor)
 type FeaturedCategory = Category & {
   image: string;
   description: string;
@@ -16,17 +16,14 @@ type FeaturedCategory = Category & {
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export default async function HomePage() {
-  // 1) Öne çıkanlar (marquee)  2) En yeniler (alttaki grid)  3) Kategoriler
   const [featured, newestAll, allCategories] = await Promise.all([
     getFeaturedProducts(12),
     getProducts('newest'),
     getCategories(),
   ]);
 
-  // Yeni çıkanlarda ilk 8 ürünü göster (isteğe göre arttırılabilir)
   const newest = (newestAll || []).slice(0, 8);
 
-  // Statik öne çıkan kategori görselleri + açıklamalar
   const featuredCategoryData = [
     {
       slug: 'kolyeler',
@@ -47,14 +44,13 @@ export default async function HomePage() {
         'Zarif bir dokunuşla gelen özgüven. Tek taşın sade şıklığından, çok taşlı tasarımların güçlü duruşuna kadar… Tarzını tamamlayan yüzüklerle her bakışta fark yarat.',
     },
     {
-    slug: 'kupeler', 
-    image: '/kupe-kategori.png',
-    description:
-      'Zarif ve modern tasarımlarıyla küpelerimiz, stilinizi tamamlayan en özel detay. Günlük kullanımdan davetlere kadar her anınıza eşlik eder.',
-  },
+      slug: 'kupeler', 
+      image: '/kupe-kategori.png',
+      description:
+        'Zarif ve modern tasarımlarıyla küpelerimiz, stilinizi tamamlayan en özel detay. Günlük kullanımdan davetlere kadar her anınıza eşlik eder.',
+    },
   ];
 
-  // Statik + DB kategori birleşimi
   const featuredCategories: FeaturedCategory[] = featuredCategoryData
     .map((staticCat) => {
       const dbCat = allCategories.find((c) => c.slug === staticCat.slug);
@@ -92,84 +88,77 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ---------------------------------------------------------------------
-     Kategori Vitrini
-     - Mobile: yatay kaydırmalı, kompakt kartlar
-     - Desktop: 3’lü grid (mevcut görünüm)
----------------------------------------------------------------------- */}
-<section className="container mx-auto px-6 py-10 md:py-20">
-  <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-6 md:mb-12">
-    Koleksiyonu Keşfet
-  </h2>
+      {/* Kategori Vitrini */}
+      <section className="container mx-auto px-6 py-10 md:py-20">
+        <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-6 md:mb-12">
+          Koleksiyonu Keşfet
+        </h2>
 
-  {/* Mobile: yatay scroll + snap */}
-  <div className="md:hidden -mx-6 px-6">
-    <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-2">
-      {featuredCategories.map((category) => (
-        <Link
-          key={category.id}
-          href={`/${category.slug}`}
-          className="snap-start shrink-0 w-[72%] xs:w-[64%] sm:w-[56%] bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden"
-        >
-          <div className="relative aspect-[4/3]">
-            <Image
-              src={category.image}
-              alt={category.name}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 70vw, 33vw"
-              priority={false}
-            />
+        {/* Mobile: yatay scroll (DEĞİŞİKLİK YOK) */}
+        <div className="md:hidden -mx-6 px-6">
+          <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-2">
+            {featuredCategories.map((category) => (
+              <Link
+                key={category.id}
+                href={`/${category.slug}`}
+                className="snap-start shrink-0 w-[72%] xs:w-[64%] sm:w-[56%] bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden"
+              >
+                <div className="relative aspect-[4/3]">
+                  <Image
+                    src={category.image}
+                    alt={category.name}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 70vw, 33vw"
+                    priority={false}
+                  />
+                </div>
+                <div className="p-3">
+                  <h3 className="text-base font-semibold text-gray-800">
+                    {category.name}
+                  </h3>
+                  <p className="mt-1 text-xs text-gray-500 line-clamp-2">
+                    {category.description}
+                  </p>
+                  <span className="mt-3 inline-block text-xs font-medium text-gray-800 underline">
+                    Şimdi Keşfet →
+                  </span>
+                </div>
+              </Link>
+            ))}
           </div>
-          <div className="p-3">
-            <h3 className="text-base font-semibold text-gray-800">
-              {category.name}
-            </h3>
-            <p className="mt-1 text-xs text-gray-500 line-clamp-2">
-              {category.description}
-            </p>
-            <span className="mt-3 inline-block text-xs font-medium text-gray-800 underline">
-              Şimdi Keşfet →
-            </span>
-          </div>
-        </Link>
-      ))}
-    </div>
-  </div>
-
-  {/* Tablet/desktop: eski 3’lü grid */}
-  <div className="hidden md:grid grid-cols-1 lg:grid-cols-3 gap-8">
-    {featuredCategories.map((category) => (
-      <Link
-        key={category.id}
-        href={`/${category.slug}`}
-        className="group block text-center bg-white p-6 rounded-lg shadow-sm hover:shadow-xl transition-shadow duration-300"
-      >
-        <div className="overflow-hidden rounded-md aspect-square">
-          <Image
-            src={category.image}
-            alt={category.name}
-            width={400}
-            height={400}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-          />
         </div>
 
-        <h3 className="mt-6 text-2xl font-semibold text-gray-800">
-          {category.name}
-        </h3>
-
-        <p className="mt-2 text-sm text-gray-500 leading-relaxed h-24">
-          {category.description}
-        </p>
-
-        <span className="mt-4 inline-block text-sm font-medium text-gray-800 group-hover:underline">
-          Şimdi Keşfet →
-        </span>
-      </Link>
-    ))}
-  </div>
-</section>
+        {/* DÜZELTME BURADA: Tablet/desktop için esnek grid yapısı */}
+        <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-8">
+          {featuredCategories.map((category) => (
+            <Link
+              key={category.id}
+              href={`/${category.slug}`}
+              className="group block text-center bg-white p-6 rounded-lg shadow-sm hover:shadow-xl transition-shadow duration-300"
+            >
+              <div className="overflow-hidden rounded-md aspect-square">
+                <Image
+                  src={category.image}
+                  alt={category.name}
+                  width={400}
+                  height={400}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+              </div>
+              <h3 className="mt-6 text-xl font-semibold text-gray-800">
+                {category.name}
+              </h3>
+              <p className="mt-2 text-sm text-gray-500 leading-relaxed h-24">
+                {category.description}
+              </p>
+              <span className="mt-4 inline-block text-sm font-medium text-gray-800 group-hover:underline">
+                Şimdi Keşfet →
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
 
       {/* Öne Çıkanlar (Marquee) */}
       {featured.length > 0 && (
@@ -181,13 +170,13 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* 4) Yeni Çıkanlar (2x4 ve sayfa sayfa) */}
-<section className="container mx-auto px-6 pb-6">
-  <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
-    Yeni Gelenler
-  </h2>
-</section>
-<NewestGridPager />
+      {/* Yeni Gelenler */}
+      <section className="container mx-auto px-6 pb-6">
+        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
+          Yeni Gelenler
+        </h2>
+      </section>
+      <NewestGridPager />
     </div>
   );
 }
