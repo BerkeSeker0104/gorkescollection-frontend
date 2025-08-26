@@ -19,6 +19,10 @@ import MobileAddToCartBar from '@/components/MobileAddToCartBar';
 
 const PLACEHOLDER = "/placeholder.png";
 
+const formatCurrency = (amount: number) => {
+    return amount.toLocaleString("tr-TR", { style: "currency", currency: "TRY" });
+};
+
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
@@ -78,8 +82,6 @@ export default function ProductPage() {
     setReviews((prev) => [newReview, ...prev]);
   };
 
-  // --- 1. YENİ FONKSİYONU EKLEYİN ---
-  // Bu fonksiyon, ReviewList component'inden çağrılacak ve yorum listesini güncelleyecektir.
   const handleReviewDeleted = (deletedReviewId: number) => {
     setReviews((prev) => prev.filter(review => review.id !== deletedReviewId));
   };
@@ -219,9 +221,30 @@ export default function ProductPage() {
                   <p className="text-sm text-gray-500">Henüz yorum yapılmamış</p>
                 )}
               </div>
-              <p className="mt-4 text-3xl tracking-tight text-gray-900">
-                {typeof product.price === "number" ? product.price.toLocaleString("tr-TR", { style: "currency", currency: "TRY" }) : `${product.price} TL`}
-              </p>
+              
+              {/* GÜNCELLENDİ: Fiyat gösterimi artık indirimi de hesaba katıyor */}
+              <div className="mt-4">
+                {product.isOnSaleNow && product.priceFinal != null && product.priceOriginal != null && product.priceFinal < product.priceOriginal ? (
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-2xl text-gray-500 line-through tracking-tight">
+                      {formatCurrency(product.priceOriginal)}
+                    </span>
+                    <span className="text-3xl font-bold tracking-tight text-gray-900">
+                      {formatCurrency(product.priceFinal)}
+                    </span>
+                    {product.saleLabel && (
+                        <span className="inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
+                            {product.saleLabel}
+                        </span>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-3xl tracking-tight text-gray-900">
+                    {formatCurrency(product.price)}
+                  </p>
+                )}
+              </div>
+              
               <div className="mt-6 text-base text-gray-700 space-y-4" dangerouslySetInnerHTML={{ __html: product.description || "" }} />
 
               <div className="hidden md:flex mt-10 items-stretch gap-3">
@@ -267,7 +290,6 @@ export default function ProductPage() {
               <div className="lg:col-span-2">
                 <h3 className="text-lg font-medium text-gray-900">Müşteri Yorumları ({reviewSummary.count})</h3>
                 <div className="mt-4">
-                  {/* --- 3. REVIEWLIST'İ GÜNCELLEYİN --- */}
                   <ReviewList reviews={reviews} onReviewDeleted={handleReviewDeleted} />
                 </div>
               </div>
