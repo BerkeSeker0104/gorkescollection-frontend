@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle, Play, XCircle, Truck } from 'lucide-react';
+import { CheckCircle, Play, XCircle, Truck, User } from 'lucide-react'; // User ikonu eklendi
 import clsx from "clsx";
 
 const shippingSchema = z.object({
@@ -104,6 +104,7 @@ export default function AdminOrderDetailPage() {
 
   const requestedCarrier: string | undefined = (order as any)?.requestedCarrier;
   const statusInfo = getStatusInfo(order.orderStatus);
+  const total = order.subtotal + (order.shippingFee || 0);
 
   return (
     <div className="container mx-auto px-6 py-8">
@@ -112,7 +113,7 @@ export default function AdminOrderDetailPage() {
       </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Sol: Ürünler ve Adres */}
+        {/* Sol: Sipariş ve Müşteri Bilgileri */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="font-semibold text-lg mb-4">Sipariş Edilen Ürünler</h3>
@@ -127,9 +128,32 @@ export default function AdminOrderDetailPage() {
               ))}
             </ul>
             <div className="mt-4 pt-4 border-t text-right font-bold">
-              Toplam: {(order.subtotal + order.shippingFee).toFixed(2)} TL
+              Toplam: {total.toFixed(2)} TL
             </div>
           </div>
+
+          {/* YENİ EKLENEN MÜŞTERİ BİLGİLERİ KARTI */}
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+              <User size={20} className="text-gray-500" /> Müşteri Bilgileri
+            </h3>
+            {order.buyer ? (
+              // Kayıtlı Kullanıcı Bilgileri
+              <div className="text-sm space-y-2">
+                <p><span className="text-gray-500 w-24 inline-block">Ad Soyad:</span> <span className="font-medium">{order.buyer.firstName} {order.buyer.lastName}</span></p>
+                <p><span className="text-gray-500 w-24 inline-block">E-posta:</span> <span className="font-medium">{order.buyer.email}</span></p>
+                <p><span className="text-gray-500 w-24 inline-block">Kullanıcı Tipi:</span> <span className="font-medium text-green-600">Kayıtlı Üye</span></p>
+              </div>
+            ) : (
+              // Misafir Kullanıcı Bilgileri
+              <div className="text-sm space-y-2">
+                <p><span className="text-gray-500 w-24 inline-block">Ad Soyad:</span> <span className="font-medium">{order.shippingAddress.fullName}</span></p>
+                <p><span className="text-gray-500 w-24 inline-block">E-posta:</span> <span className="font-medium">{order.guestEmail || "Belirtilmemiş"}</span></p>
+                <p><span className="text-gray-500 w-24 inline-block">Kullanıcı Tipi:</span> <span className="font-medium text-blue-600">Misafir</span></p>
+              </div>
+            )}
+          </div>
+          
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="font-semibold text-lg mb-4">Teslimat Adresi</h3>
             <p className="font-medium">{order.shippingAddress.fullName}</p>
@@ -137,6 +161,7 @@ export default function AdminOrderDetailPage() {
             <p>{order.shippingAddress.district}, {order.shippingAddress.city} {order.shippingAddress.postalCode}</p>
             <p className="text-sm text-gray-600 mt-2">Telefon: {order.shippingAddress.phoneNumber || "-"}</p>
           </div>
+          
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="font-semibold text-lg mb-2">Müşterinin Seçtiği Kargo</h3>
             <p className="text-sm text-gray-700">{requestedCarrier || "— (bilgi yok)"}</p>

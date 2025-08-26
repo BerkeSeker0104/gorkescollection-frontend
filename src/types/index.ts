@@ -27,13 +27,12 @@ export interface Category {
   slug: string;
 }
 
-// GÜNCELLENDİ: CartItemDto'ya indirim bilgileri eklendi.
 export interface CartItemDto {
   productId: number;
   name: string;
-  price: number; // Bu alan artık son (indirimli) fiyattır.
-  priceOriginal?: number; // Ürünün orijinal fiyatı
-  isOnSaleNow?: boolean; // Ürün indirimde mi?
+  price: number;
+  priceOriginal?: number;
+  isOnSaleNow?: boolean;
   imageUrl: string;
   quantity: number;
 }
@@ -47,8 +46,6 @@ export interface CartDto {
   total: number;
   appliedCouponCode?: string;
 }
-
-// ... dosyanın geri kalanı aynı ...
 
 export interface ShippingAddress {
   fullName: string;
@@ -89,16 +86,26 @@ export interface OrderItem {
   quantity: number;
 }
 
+// GÜNCELLENDİ: Order tipine 'buyer' ve 'guestEmail' eklendi.
 export interface Order {
   id: number;
   buyerId: string;
+  // Kayıtlı kullanıcı bilgileri (opsiyonel)
+  buyer?: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  guestEmail?: string; // Misafir siparişinin e-postası
   shippingAddress: ShippingAddress;
   orderDate: string;
   orderItems: OrderItem[];
   subtotal: number;
   shippingFee: number;
   orderStatus: string;
-  total: number;
+  // 'total' alanı backend'den gelmiyor, bu yüzden opsiyonel yapalım veya kaldıralım.
+  // En güvenlisi frontend'de hesaplamak olduğu için opsiyonel bırakıyorum.
+  total?: number; 
   cargoCompany?: string;
   trackingNumber?: string;
 }
