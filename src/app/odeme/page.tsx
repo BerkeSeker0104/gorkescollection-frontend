@@ -114,10 +114,16 @@ export default function CheckoutPage() {
     }
   };
 
-  const subtotal = cart?.items.reduce((sum, item) => sum + item.price * item.quantity, 0) || 0;
-  const shippingFee = settingsLoading ? 0 : (subtotal >= settings.threshold ? 0 : settings.fee);
-  const total = subtotal + shippingFee;
+  // Sepet indirimi ve ara toplamı cart’tan al; yoksa fallback hesapla
+const subtotal = (cart?.subtotal ?? cart?.items.reduce((sum, i) => sum + i.price * i.quantity, 0) ?? 0);
+const discountAmount = cart?.discountAmount ?? 0;
 
+// Kargo eşiğini indirimsiz değil, indirIM SONRASI tutara göre kontrol et
+const shippingFee = settingsLoading ? 0 : ((subtotal - discountAmount) >= settings.threshold ? 0 : settings.fee);
+
+// Toplam = (ara toplam - indirim) + kargo
+const total = (subtotal - discountAmount) + (settingsLoading ? 0 : shippingFee);
+<div className="border-t border-gray-200 pt-4" />
   if (!cart || cart.items.length === 0) {
     return (
       <div className="container mx-auto px-6 py-16 text-center pt-48">
@@ -285,6 +291,14 @@ export default function CheckoutPage() {
               <dt className="text-sm text-gray-600">Ara Toplam</dt>
               <dd className="text-sm font-medium text-gray-900">{subtotal.toFixed(2)} TL</dd>
             </div>
+            {discountAmount > 0 && (
+  <div className="flex items-center justify-between text-green-600">
+    <dt className="text-sm">
+      İndirim {cart?.appliedCouponCode ? `(${cart.appliedCouponCode})` : ""}
+    </dt>
+    <dd className="text-sm font-medium">-{discountAmount.toFixed(2)} TL</dd>
+  </div>
+)}
             <div className="flex items-center justify-between border-t border-gray-200 pt-4">
               <dt className="text-sm text-gray-600">Kargo Ücreti</dt>
               <dd className="text-sm font-medium text-gray-900">
