@@ -10,7 +10,6 @@ import { Setting } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import CouponInput from "@/components/CouponInput";
 
-// YENİ: Para birimini formatlamak için yardımcı fonksiyon
 const formatCurrency = (amount: number) => {
   return amount.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' });
 };
@@ -103,7 +102,6 @@ export default function CartPage() {
                           {item.name}
                         </Link>
                       </h3>
-                      {/* ======================= FİYAT GÖSTERİMİ GÜNCELLEMESİ ======================= */}
                       <div className="mt-1 text-sm font-medium text-gray-900">
                         {item.isOnSaleNow && item.priceOriginal && item.priceOriginal > item.price ? (
                           <div className="flex items-baseline gap-2">
@@ -150,14 +148,11 @@ export default function CartPage() {
             <h2 id="summary-heading" className="text-lg font-medium text-gray-900">
               Sipariş Özeti
             </h2>
-
-            {/* ======================= ÖZET GÜNCELLEMESİ ======================= */}
             <dl className="mt-6 space-y-4">
               <div className="flex items-center justify-between">
                 <dt className="text-sm text-gray-600">Ara Toplam</dt>
                 <dd className="text-sm font-medium text-gray-900">{formatCurrency(subtotal)}</dd>
               </div>
-
               {discountAmount > 0 && (
                 <div className="flex items-center justify-between text-green-600">
                   <dt className="text-sm flex items-center">
@@ -166,7 +161,6 @@ export default function CartPage() {
                   <dd className="text-sm font-medium">-{formatCurrency(discountAmount)}</dd>
                 </div>
               )}
-
               <div className="flex items-center justify-between border-t border-gray-200 pt-4">
                 <dt className="flex items-center text-sm text-gray-600">
                   <span>Kargo Ücreti</span>
@@ -175,13 +169,11 @@ export default function CartPage() {
                   {settingsLoading ? "Hesaplanıyor..." : shippingFee === 0 ? "Ücretsiz" : formatCurrency(shippingFee)}
                 </dd>
               </div>
-
               {!settingsLoading && subtotal > 0 && subtotal < settings.threshold && (
                 <div className="text-center text-xs text-green-600 pt-2">
                   Ücretsiz kargo için sepetinize <strong>{formatCurrency(settings.threshold - subtotal)}</strong> daha ekleyin!
                 </div>
               )}
-
               <div className="flex items-center justify-between border-t border-gray-200 pt-4">
                 <dt className="text-base font-medium text-gray-900">Toplam</dt>
                 <dd className="text-base font-medium text-gray-900">
@@ -192,8 +184,22 @@ export default function CartPage() {
             
             <CouponInput />
 
+            {/* DÜZELTME BURADA: Silinen ödeme butonu bloğu geri eklendi */}
             <div className="mt-6">
-              {/* ... Ödeme Butonu Aynı ... */}
+              {checkoutEnabled ? (
+                <Link href="/odeme" className="w-full block text-center rounded-md border border-transparent bg-gray-900 px-4 py-3 text-base font-medium text-white shadow-sm hover:bg-gray-700">
+                  {isAuthenticated ? "Ödemeye Geç" : "Ödemeye Geç"}
+                </Link>
+              ) : (
+                <button type="button" disabled aria-disabled title="Çok yakında" className="w-full block text-center rounded-md border border-gray-300 bg-gray-200 px-4 py-3 text-base font-medium text-gray-500 cursor-not-allowed">
+                  Satın Al (Çok Yakında)
+                </button>
+              )}
+              {!checkoutEnabled && (
+                <p className="mt-2 text-center text-xs text-gray-500">
+                  Ödeme sistemi başvuru sürecinde. Çok yakında aktif olacak.
+                </p>
+              )}
             </div>
           </section>
         </div>
