@@ -23,7 +23,6 @@ const formatTRY = (n: number) =>
 const ProductCard = ({ product }: ProductCardProps) => {
   const { addItem } = useCart();
   
-  // GÜNCELLENDİ: Stok durumunu kontrol etmek için bir değişken ekleyelim.
   const isInStock = product.stockQuantity > 0;
 
   const base =
@@ -49,7 +48,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Stoğu olmayan bir ürün için butona yine de basılırsa (nadiren de olsa), işlemi durdur.
     if (!isInStock) {
         toast.error('Bu ürün şu anda stokta bulunmamaktadır.');
         return;
@@ -67,14 +65,13 @@ const ProductCard = ({ product }: ProductCardProps) => {
         { duration: 3000 }
       );
     } catch (err: any) {
-      // Backend'den gelen stok hatası mesajını göster
       toast.error(err?.message || 'Sepete eklenemedi');
     }
   };
 
   return (
-    <div className="group relative">
-      <div className="aspect-square w-full overflow-hidden rounded-md bg-gray-200 lg:h-80 relative">
+    <div className="group relative flex flex-col">
+      <div className="aspect-square w-full overflow-hidden rounded-md bg-gray-200 relative">
         <Image
           src={thumb}
           alt={product.name}
@@ -98,11 +95,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
             />
         </div>
 
-        {/* ======================= GÜNCELLEME BURADA ======================= */}
-        {/* Stok durumuna göre butonları koşullu olarak render ediyoruz */}
-        {isInStock ? (
-          <>
-            {/* Sepete Ekle - Desktop */}
+        {/* MASAÜSTÜ İÇİN SEPETE EKLE (Hover üzerinde belirir) */}
+        {isInStock && (
             <button
               onClick={handleAddToCart}
               className="hidden md:flex absolute left-3 right-3 bottom-3 items-center justify-center gap-2 rounded-md bg-gray-900/90 text-white py-2 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm z-20"
@@ -111,35 +105,17 @@ const ProductCard = ({ product }: ProductCardProps) => {
               <ShoppingBag size={18} />
               <span className="text-sm font-medium">Sepete Ekle</span>
             </button>
-
-            {/* Sepete Ekle - Mobil */}
-            <button
-              onClick={handleAddToCart}
-              className="md:hidden absolute right-3 bottom-3 inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white/90 px-3 py-1.5 text-gray-800 shadow-sm z-20"
-              aria-label="Sepete ekle"
-            >
-              <ShoppingBag size={18} />
-              <span className="text-xs font-medium">Sepet</span>
-            </button>
-          </>
-        ) : (
-          <>
-            {/* Tükendi - Desktop */}
+        )}
+        
+        {/* MASAÜSTÜ İÇİN TÜKENDİ (Hover üzerinde belirir) */}
+        {!isInStock && (
             <div className="hidden md:flex absolute left-3 right-3 bottom-3 items-center justify-center gap-2 rounded-md bg-gray-400/80 text-white py-2 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm z-20 cursor-not-allowed">
               <span className="text-sm font-medium">Tükendi</span>
             </div>
-            
-            {/* Tükendi - Mobil */}
-            <div className="md:hidden absolute right-3 bottom-3 inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-200/90 px-3 py-1.5 text-gray-500 shadow-sm z-20 cursor-not-allowed">
-                <span className="text-xs font-medium">Tükendi</span>
-            </div>
-          </>
         )}
-        {/* ======================= GÜNCELLEME SONU ======================= */}
-
       </div>
 
-      <div className="mt-4 space-y-1">
+      <div className="mt-4 flex flex-col flex-grow">
         <h3 className="text-sm text-gray-700 line-clamp-1">
           <Link href={`/urun/${product.id}`}>
             <span aria-hidden="true" className="absolute inset-0 z-0" />
@@ -148,13 +124,31 @@ const ProductCard = ({ product }: ProductCardProps) => {
         </h3>
 
         {hasDiscount ? (
-          <div className="flex items-baseline gap-2">
+          <div className="flex items-baseline gap-2 mt-1">
             <span className="text-sm text-gray-500 line-through">{formatTRY(base)}</span>
             <span className="text-sm font-semibold text-gray-900">{formatTRY(final)}</span>
           </div>
         ) : (
-          <p className="text-sm font-medium text-gray-900">{formatTRY(base)}</p>
+          <p className="text-sm font-medium text-gray-900 mt-1">{formatTRY(base)}</p>
         )}
+
+        {/* ======================= MOBİL İÇİN YENİ BUTON ALANI ======================= */}
+        <div className="mt-auto pt-3 md:hidden">
+            {isInStock ? (
+                <button
+                    onClick={handleAddToCart}
+                    className="w-full flex items-center justify-center gap-2 rounded-md bg-gray-900 text-white py-2 transition-colors shadow-sm"
+                    aria-label="Sepete ekle"
+                >
+                    <ShoppingBag size={18} />
+                    <span className="text-sm font-medium">Sepete Ekle</span>
+                </button>
+            ) : (
+                <div className="w-full text-center rounded-md bg-gray-200 text-gray-500 py-2 text-sm font-medium cursor-not-allowed">
+                    Tükendi
+                </div>
+            )}
+        </div>
       </div>
     </div>
   );
