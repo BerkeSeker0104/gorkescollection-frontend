@@ -87,7 +87,7 @@ const Footer = () => {
                 height={28}
               />
             </a>
-            <a href="#" className="opacity-70 hover:opacity-100 transition-opacity">
+            <a href="https://www.tiktok.com/@gorkescollection?_t=ZS-8zCF86eDpMQ&_r=1" className="opacity-70 hover:opacity-100 transition-opacity">
               <Image 
                 src="/images/social-media/tiktok.png"
                 alt="TikTok"

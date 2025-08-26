@@ -97,7 +97,7 @@ export default function ContactPage() {
 
                                     {/* TikTok */}
                                     <a 
-                                      href="https://www.tiktok.com/@gorkescollection" 
+                                      href="https://www.tiktok.com/@gorkescollection?_t=ZS-8zCF86eDpMQ&_r=1" 
                                       target="_blank"
                                       rel="noopener noreferrer"
                                     >
