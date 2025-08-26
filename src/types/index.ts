@@ -27,10 +27,13 @@ export interface Category {
   slug: string;
 }
 
+// GÜNCELLENDİ: CartItemDto'ya indirim bilgileri eklendi.
 export interface CartItemDto {
   productId: number;
   name: string;
-  price: number;
+  price: number; // Bu alan artık son (indirimli) fiyattır.
+  priceOriginal?: number; // Ürünün orijinal fiyatı
+  isOnSaleNow?: boolean; // Ürün indirimde mi?
   imageUrl: string;
   quantity: number;
 }
@@ -45,6 +48,8 @@ export interface CartDto {
   appliedCouponCode?: string;
 }
 
+// ... dosyanın geri kalanı aynı ...
+
 export interface ShippingAddress {
   fullName: string;
   address1: string;
@@ -56,9 +61,8 @@ export interface ShippingAddress {
   phoneNumber: string;
 }
 
-// GÜNCELLENDİ: UserDto'ya FirstName ve LastName eklendi.
 export interface UserDto {
-  username: string; // Bu alan artık backend'de email ile aynı.
+  username: string;
   email: string;
   token: string;
   firstName: string;
@@ -66,11 +70,10 @@ export interface UserDto {
 }
 
 export interface LoginData {
-  username: string; // Frontend'de bu alan "E-posta" olarak kullanılacak.
+  username: string;
   password: string;
 }
 
-// GÜNCELLENDİ: RegisterData artık username yerine firstName ve lastName alıyor.
 export interface RegisterData {
   firstName: string;
   lastName: string;
