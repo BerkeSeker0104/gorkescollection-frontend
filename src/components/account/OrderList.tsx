@@ -29,7 +29,8 @@ export default function OrderList() {
       case 'Shipped': return { text: 'Kargoya Verildi', color: 'bg-indigo-100 text-indigo-800' };
       case 'Delivered': return { text: 'Teslim Edildi', color: 'bg-green-100 text-green-800' };
       case 'PaymentFailed': return { text: 'Ödeme Başarısız', color: 'bg-red-100 text-red-800' };
-      default: return { text: 'Hazırlanıyor', color: 'bg-yellow-100 text-yellow-800' };
+      case 'Cancelled': return { text: 'İptal Edildi', color: 'bg-gray-100 text-gray-800'};
+      default: return { text: 'Beklemede', color: 'bg-gray-100 text-gray-800' };
     }
   };
 
@@ -48,6 +49,9 @@ export default function OrderList() {
         <div className="space-y-8">
           {orders.map((order) => {
             const statusInfo = translateStatus(order.orderStatus);
+            // GÜNCELLEME: Gerçek toplam tutarı burada hesaplıyoruz
+            const total = (order.subtotal || 0) - (order.discountAmount || 0) + (order.shippingFee || 0);
+
             return (
               <div key={order.id} className="bg-white rounded-xl shadow-sm border border-zinc-200 overflow-hidden">
                 <div className="bg-zinc-50 p-4 sm:p-5 border-b border-zinc-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -57,11 +61,29 @@ export default function OrderList() {
                         <p className="text-sm text-zinc-500">{new Date(order.orderDate).toLocaleDateString('tr-TR', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                      </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className={clsx('px-3 py-1 text-xs font-semibold rounded-full', statusInfo.color)}>
+                  <div className="text-right">
+                    <p className="font-semibold text-lg text-zinc-900">{formatCurrency(total)}</p>
+                    <span className={clsx('px-3 py-1 text-xs font-semibold rounded-full mt-1 inline-block', statusInfo.color)}>
                         {statusInfo.text}
                     </span>
-                    <p className="font-semibold text-lg text-zinc-900">{formatCurrency(order.subtotal + order.shippingFee)}</p>
+                  </div>
+                </div>
+
+                {/* GÜNCELLENDİ: Ara Toplam, İndirim ve Kargo Ücreti detayları eklendi */}
+                <div className="p-4 sm:p-5 text-sm text-zinc-600 space-y-2 border-b border-zinc-200">
+                  <div className="flex justify-between">
+                    <span>Ara Toplam</span>
+                    <span className="font-medium text-zinc-800">{formatCurrency(order.subtotal)}</span>
+                  </div>
+                  {order.discountAmount && order.discountAmount > 0 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Kupon İndirimi ({order.appliedCouponCode})</span>
+                      <span className="font-medium">-{formatCurrency(order.discountAmount)}</span>
+                    </div>
+                  )}
+                   <div className="flex justify-between">
+                    <span>Kargo Ücreti</span>
+                    <span className="font-medium text-zinc-800">{formatCurrency(order.shippingFee)}</span>
                   </div>
                 </div>
 
@@ -80,8 +102,6 @@ export default function OrderList() {
                             {item.productName}
                         </Link>
                         <p className="text-sm text-zinc-500">{item.quantity} x {formatCurrency(item.price)}</p>
-                        
-                        {/* DÜZENLEME BURADA: Butonları dikeyde (alt alta) hizalamak için class'lar değiştirildi */}
                         <div className="flex flex-col items-start gap-2 mt-auto pt-2 text-sm">
                           <Link href={`/urun/${item.productId}`} className="flex items-center gap-1.5 text-zinc-600 hover:text-black transition-colors whitespace-nowrap">
                               <ShoppingBag size={14} /> Tekrar Satın Al

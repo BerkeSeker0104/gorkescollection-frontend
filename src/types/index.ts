@@ -102,6 +102,8 @@ export interface Order {
   orderItems: OrderItem[];
   subtotal: number;
   shippingFee: number;
+  discountAmount?: number; // Kupon indirim tutarı (opsiyonel)
+  appliedCouponCode?: string | null; // Uygulanan kupon kodu (opsiyonel)
   orderStatus: string;
   // 'total' alanı backend'den gelmiyor, bu yüzden opsiyonel yapalım veya kaldıralım.
   // En güvenlisi frontend'de hesaplamak olduğu için opsiyonel bırakıyorum.
