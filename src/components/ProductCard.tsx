@@ -45,6 +45,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
     )}`;
 
   const handleAddToCart = async (e: React.MouseEvent) => {
+    // Bu fonksiyon artık event'i durdurmaya ihtiyaç duymuyor ama güvenlik için kalabilir.
     e.preventDefault();
     e.stopPropagation();
 
@@ -72,13 +73,16 @@ const ProductCard = ({ product }: ProductCardProps) => {
   return (
     <div className="group relative flex flex-col">
       <div className="aspect-square w-full overflow-hidden rounded-md bg-gray-200 relative">
-        <Image
-          src={thumb}
-          alt={product.name}
-          width={400}
-          height={400}
-          className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
-        />
+        {/* DÜZELTME 1: Görsel artık kendi linkine sahip */}
+        <Link href={`/urun/${product.id}`}>
+          <Image
+            src={thumb}
+            alt={product.name}
+            width={400}
+            height={400}
+            className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+          />
+        </Link>
 
         {hasDiscount && (
           <div className="absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-red-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
@@ -95,7 +99,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
             />
         </div>
 
-        {/* MASAÜSTÜ İÇİN SEPETE EKLE (Hover üzerinde belirir) */}
         {isInStock && (
             <button
               onClick={handleAddToCart}
@@ -107,7 +110,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
             </button>
         )}
         
-        {/* MASAÜSTÜ İÇİN TÜKENDİ (Hover üzerinde belirir) */}
         {!isInStock && (
             <div className="hidden md:flex absolute left-3 right-3 bottom-3 items-center justify-center gap-2 rounded-md bg-gray-400/80 text-white py-2 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm z-20 cursor-not-allowed">
               <span className="text-sm font-medium">Tükendi</span>
@@ -117,8 +119,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
       <div className="mt-4 flex flex-col flex-grow">
         <h3 className="text-sm text-gray-700 line-clamp-1">
-          <Link href={`/urun/${product.id}`}>
-            <span aria-hidden="true" className="absolute inset-0 z-0" />
+          <Link href={`/urun/${product.id}`} className="hover:underline">
+            {/* DÜZELTME 2: Görünmez link katmanı kaldırıldı */}
             {product.name}
           </Link>
         </h3>
@@ -132,7 +134,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <p className="text-sm font-medium text-gray-900 mt-1">{formatTRY(base)}</p>
         )}
 
-        {/* ======================= MOBİL İÇİN YENİ BUTON ALANI ======================= */}
         <div className="mt-auto pt-3 md:hidden">
             {isInStock ? (
                 <button
