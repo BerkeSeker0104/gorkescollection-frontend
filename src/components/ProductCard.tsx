@@ -93,11 +93,12 @@ const ProductCard = ({ product }: ProductCardProps) => {
         )}
 
         <div className="absolute top-3 right-3 z-20">
-            <FavoriteButton
-                product={product}
-                className="bg-white/70 backdrop-blur-sm lg:opacity-0 group-hover:opacity-100"
-            />
-        </div>
+    <FavoriteButton
+        product={product}
+        className="bg-white/70 backdrop-blur-sm lg:opacity-0 group-hover:opacity-100"
+        size={20} // DEĞİŞİKLİK BURADA: İkon boyutunu 22 olarak ayarladık.
+    />
+</div>
 
         {isInStock && (
             <button
