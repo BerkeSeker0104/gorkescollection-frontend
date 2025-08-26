@@ -22,6 +22,37 @@ import {
 
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+// Misafir sepet kimliği (cookie çalışmazsa header ile taşırız)
+const GUEST_HEADER = 'X-Guest-Id';
+const GUEST_STORAGE_KEY = 'guestId';
+
+const getGuestId = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(GUEST_STORAGE_KEY);
+};
+
+const setGuestId = (id: string) => {
+  if (typeof window === 'undefined' || !id) return;
+  localStorage.setItem(GUEST_STORAGE_KEY, id);
+};
+
+const ensureGuestId = (): string => {
+  const current = getGuestId();
+  if (current) return current;
+  const id = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
+    ? crypto.randomUUID().replace(/-/g, '')
+    : Math.random().toString(36).slice(2) + Date.now().toString(36);
+  setGuestId(id);
+  return id;
+};
+
+// Sunucu header ile guestId döndürürse tarafa yaz
+const persistGuestFromResponse = (res: Response) => {
+  const hdr = res.headers.get(GUEST_HEADER);
+  if (hdr && hdr.trim()) setGuestId(hdr.trim());
+};
+
 // YENİ MERKEZİ FONKSİYON: Token'ı localStorage'dan al
 const getToken = (): string | null => {
   if (typeof window !== 'undefined') {
@@ -33,13 +64,15 @@ const getToken = (): string | null => {
 // GÜNCELLENMİŞ MERKEZİ FONKSİYON: Her zaman geçerli bir Headers nesnesi döndürür
 const getAuthHeaders = (): HeadersInit => {
   const headers: { [key: string]: string } = {
-    // Bu satır, gönderilen verinin JSON formatında olduğunu belirtir.
     'Content-Type': 'application/json'
   };
   const token = getToken();
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  // << YENİ: misafir ID varsa header'a ekle
+  const guestId = getGuestId();
+  if (guestId) headers['X-Guest-Id'] = guestId;
+
   return headers;
 };
 
@@ -159,16 +192,22 @@ export const deleteReview = async (reviewId: number): Promise<boolean> => {
 };
 
 export async function initiatePaytrPayment(address: ShippingAddress, guestEmail?: string, preferredCarrier?: string, couponCode?: string) {
+  // A)
+  ensureGuestId();
+
   const res = await fetch(`${API_URL}/api/payments/initiate-payment`, {
     method: "POST",
-    credentials: 'include', // DEĞİŞİKLİK BURADA
+    credentials: 'include',
     cache: "no-store",
     headers: {
       "Content-Type": "application/json",
       ...getAuthHeaders(),
     },
-    body: JSON.stringify({ shippingAddress: address, email: guestEmail, preferredCarrier, couponCode, }),
+    body: JSON.stringify({ shippingAddress: address, email: guestEmail, preferredCarrier, couponCode }),
   });
+
+  // B)
+  persistGuestFromResponse(res);
 
   if (!res.ok) { 
     const errorBody = await res.json().catch(() => ({ message: "Ödeme başlatılamadı."}));
@@ -403,12 +442,19 @@ export const resendConfirmationEmail = async (email: string): Promise<{ success:
 
 export const getCart = async (): Promise<CartDto | null> => {
   try {
+    // A) misafir ID’yi garanti altına al
+    ensureGuestId();
+
     const res = await fetch(`${API_URL}/api/cart`, {
       method: 'GET',
-      credentials: 'include', // DEĞİŞİKLİK BURADA
+      credentials: 'include',
       headers: { ...getAuthHeaders() },
       cache: 'no-store',
     });
+
+    // B) sunucu header ile yeni ID döndürdüyse sakla
+    persistGuestFromResponse(res);
+
     if (!res.ok) return null;
     return res.json();
   } catch (e) {
@@ -418,16 +464,23 @@ export const getCart = async (): Promise<CartDto | null> => {
 
 export const addToCart = async (productId: number, quantity: number): Promise<CartDto | null> => {
   try {
+    // A)
+    ensureGuestId();
+
     const res = await fetch(`${API_URL}/api/cart/items`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
       body: JSON.stringify({ productId, quantity }),
-      cache: 'no-store', // DEĞİŞİKLİK BURADA
+      cache: 'no-store',
     });
+
+    // B)
+    persistGuestFromResponse(res);
+
     if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.detail || errorData.title || 'Ürün sepete eklenemedi.');
+      const errorData = await res.json();
+      throw new Error(errorData.detail || errorData.title || 'Ürün sepete eklenemedi.');
     }
     return res.json();
   } catch (error) {
@@ -438,6 +491,9 @@ export const addToCart = async (productId: number, quantity: number): Promise<Ca
 
 export const removeFromCart = async (productId: number, quantity: number): Promise<CartDto | null> => {
   try {
+    // A)
+    ensureGuestId();
+
     const res = await fetch(`${API_URL}/api/cart/items`, {
       method: 'DELETE',
       credentials: 'include',
@@ -446,15 +502,15 @@ export const removeFromCart = async (productId: number, quantity: number): Promi
       body: JSON.stringify({ productId, quantity }),
     });
 
-    // Backend 204 (No Content) veya boş body döndürebilir → güncel sepeti yeniden çek
+    // B)
+    persistGuestFromResponse(res);
+
     if (res.status === 204) {
       return await getCart();
     }
-
     const contentType = res.headers.get('content-type') || '';
     const text = await res.text();
 
-    // Hata durumunu JSON/boş cevapla güvenli ele al
     if (!res.ok) {
       try {
         const err = text ? JSON.parse(text) : null;
@@ -464,24 +520,16 @@ export const removeFromCart = async (productId: number, quantity: number): Promi
         throw new Error(`Sepetten çıkarılamadı (HTTP ${res.status}).`);
       }
     }
-
-    // Başarılı ama gövde boş → yine güvenli yol: sepeti yeniden çek
-    if (!text) {
-      return await getCart();
-    }
-
-    // JSON ise parse et, değilse yine sepeti yeniden çek
+    if (!text) return await getCart();
     if (contentType.includes('application/json')) {
       return JSON.parse(text) as CartDto;
     }
     return await getCart();
   } catch (e) {
     console.error('removeFromCart hata:', e);
-    // Ağ/parse hatasında da gerçek durumu senkronlamak için sepeti çek
     return await getCart();
   }
 };
-
 
 export const createOrder = async (address: ShippingAddress): Promise<string | null> => {
   const token = getToken();
@@ -1014,9 +1062,12 @@ export const createShipment = async (
 
 export const applyCoupon = async (couponCode: string): Promise<CartDto | null> => {
   try {
+    // A)
+    ensureGuestId();
+
     const res = await fetch(`${API_URL}/api/cart/apply-coupon`, {
       method: 'POST',
-      credentials: 'include', // DEĞİŞİKLİK BURADA
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         ...getAuthHeaders(),
@@ -1024,11 +1075,13 @@ export const applyCoupon = async (couponCode: string): Promise<CartDto | null> =
       body: JSON.stringify({ couponCode }),
     });
 
+    // B)
+    persistGuestFromResponse(res);
+
     if (!res.ok) {
       const errorData = await res.json();
       throw new Error(errorData.message || 'Geçersiz kupon kodu.');
     }
-    
     return res.json();
   } catch (error) {
     console.error('Kupon uygulanırken hata:', error);
