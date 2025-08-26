@@ -46,6 +46,12 @@ export default async function HomePage() {
       description:
         'Zarif bir dokunuşla gelen özgüven. Tek taşın sade şıklığından, çok taşlı tasarımların güçlü duruşuna kadar… Tarzını tamamlayan yüzüklerle her bakışta fark yarat.',
     },
+    {
+    slug: 'kupeler', 
+    image: '/kupe-kategori.png',
+    description:
+      'Zarif ve modern tasarımlarıyla küpelerimiz, stilinizi tamamlayan en özel detay. Günlük kullanımdan davetlere kadar her anınıza eşlik eder.',
+  },
   ];
 
   // Statik + DB kategori birleşimi
