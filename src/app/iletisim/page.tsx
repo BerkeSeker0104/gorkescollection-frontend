@@ -53,7 +53,7 @@ export default function ContactPage() {
                                               rel="noopener noreferrer"
                                               className="text-gray-600 hover:text-gray-900"
                                             >
-                                                +90 530 833 17 05
+                                                +90 551 343 22 61
                                             </a>
                                         </div>
                                     </div>
@@ -66,7 +66,7 @@ export default function ContactPage() {
                                     <div>
                                         <h3 className="font-medium text-gray-800">Adres</h3>
                                         <p className="text-gray-600">
-                                        Kanarya Mahallesi, 1. Çalıkuşu Sokak, No:37/39, Daire:123, 34290 Küçükçekmece / İstanbul
+                                        Kanarya Mahallesi, 1. Çalıkuşu Sokak, No:37/39, 34290 Küçükçekmece / İstanbul
                                         </p>
                                         </div>
                                     </div>

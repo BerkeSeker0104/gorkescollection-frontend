@@ -24,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
 
-  const WHATSAPP_PHONE_NUMBER = '905308331705';
+  const WHATSAPP_PHONE_NUMBER = '905513432261';
 
   return (
     <html lang="tr">
