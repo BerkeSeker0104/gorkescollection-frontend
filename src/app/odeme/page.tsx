@@ -36,6 +36,7 @@ const inputStyle =
 
 export default function CheckoutPage() {
   const { cart } = useCart();
+  console.log("ÖDEME SAYFASI SEPET VERİSİ:", cart);
   const router = useRouter();
   const { user, loading: authLoading } = useAuth(); // 🔸 login kontrolü
   const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
