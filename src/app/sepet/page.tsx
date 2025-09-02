@@ -46,8 +46,8 @@ export default function CartPage() {
 
   const subtotal = cart?.subtotal || 0;
   const discountAmount = cart?.discountAmount || 0;
-  const shippingFee = settingsLoading ? 0 : subtotal >= settings.threshold ? 0 : settings.fee;
-  const total = cart?.total !== undefined ? cart.total + shippingFee : subtotal - discountAmount + shippingFee;
+  const shippingFee = settingsLoading ? 0 : (subtotal - discountAmount) >= settings.threshold ? 0 : settings.fee;
+  const total = subtotal - discountAmount + shippingFee;
 
   if (cartLoading && !cart) {
     return (
