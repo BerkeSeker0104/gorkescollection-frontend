@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 // 🔸 login kontrolü için
 import { useAuth } from "@/context/AuthContext";
 import Script from "next/script";
+import { ensureGuestId, getGuestId } from "@/lib/guest";
 
 // 🔸 yeni: kargo seçimi bileşeni
 import CarrierSelect, { CarrierKey } from "@/components/checkout/CarrierSelect";
@@ -63,14 +64,27 @@ export default function CheckoutPage() {
       setSettingsLoading(true);
       const [addresses, fetchedSettings] = await Promise.all([getAddresses(), getSettings()]);
       setSavedAddresses(addresses);
-      const fee = parseFloat(fetchedSettings.find(s => s.key === 'ShippingFee')?.value || '50');
-      const threshold = parseFloat(fetchedSettings.find(s => s.key === 'FreeShippingThreshold')?.value || '2000');
-      setSettings({ fee, threshold });
+
+      // Güvenli sayı parse (',' -> '.')
+      const getVal = (key: string, def: string) =>
+        (fetchedSettings.find((s: any) => s.key === key)?.value ?? def).toString().replace(',', '.');
+
+      const fee = parseFloat(getVal('ShippingFee', '50'));
+      const threshold = parseFloat(getVal('FreeShippingThreshold', '2000'));
+
+      setSettings({
+        fee: Number.isFinite(fee) ? fee : 50,
+        threshold: Number.isFinite(threshold) ? threshold : 2000
+      });
       setSettingsLoading(false);
     };
     fetchData();
   }, []);
 
+    useEffect(() => {
+    ensureGuestId();
+  }, []);
+  
   const handleSelectAddress = (address: Address) => {
     reset({
       fullName: address.fullName,
@@ -114,39 +128,48 @@ export default function CheckoutPage() {
     }
   };
 
-  // Sepet indirimi ve ara toplamı cart’tan al; yoksa fallback hesapla
-// ----------------- Tutar Hesabı (backend ile birebir) -----------------
-const round2 = (n: number) => Math.round(n * 100) / 100;
+  // ----------------- Tutar Hesabı (backend ile birebir) -----------------
+  const round2 = (n: number) => Math.round(n * 100) / 100;
 
-const rawSubtotal =
-  cart?.subtotal ??
-  cart?.items.reduce((sum, i) => sum + i.price * i.quantity, 0) ??
-  0;
+  const rawSubtotal =
+    cart?.subtotal ??
+    cart?.items.reduce((sum, i) => sum + i.price * i.quantity, 0) ??
+    0;
 
-const subtotal = round2(rawSubtotal);
-const discountAmount = round2(cart?.discountAmount ?? 0);
+  const subtotal = round2(rawSubtotal);
+  const discountAmount = round2(cart?.discountAmount ?? 0);
 
-const fee = Number.isFinite(settings.fee) ? settings.fee : 0;
-const threshold = Number.isFinite(settings.threshold) ? settings.threshold : Number.MAX_SAFE_INTEGER;
+  const fee = Number.isFinite(settings.fee) ? settings.fee : 0;
+  const threshold = Number.isFinite(settings.threshold) ? settings.threshold : Number.MAX_SAFE_INTEGER;
 
-const shippingFee =
-  settingsLoading
-    ? 0
-    : (subtotal - discountAmount) >= threshold
+  const shippingFee =
+    settingsLoading
       ? 0
-      : fee;
+      : (subtotal - discountAmount) >= threshold
+        ? 0
+        : fee;
 
-const total = round2(subtotal - discountAmount + shippingFee);
+  const total = round2(subtotal - discountAmount + shippingFee);
 
-// YENİ EKLENEN DETAYLI DEBUG LOG'LARI
-console.log("--- HESAPLAMA DETAYLARI ---");
-console.log("Cart Subtotal (Ara Toplam):", subtotal);
-console.log("Discount (İndirim):", discountAmount);
-console.log("Settings State (Ayarlar):", settings);
-console.log("Settings Loading (Ayarlar Yükleniyor mu?):", settingsLoading);
-console.log("Calculated Shipping Fee (Hesaplanan Kargo):", shippingFee);
-console.log("FINAL TOTAL (NİHAİ TOPLAM):", total);
-console.log("----------------------------");
+  // ====== KRİTİK: Toplam değiştiğinde eski iFrame token'ı sıfırla ======
+  useEffect(() => {
+    // Sepette/kuponda/kargoda değişim -> yeni token istemeden önce eskisini temizle
+    if (iframeToken) {
+      setIframeToken(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subtotal, discountAmount, shippingFee, preferredCarrier, cart?.appliedCouponCode]);
+
+  // YENİ EKLENEN DETAYLI DEBUG LOG'LARI
+  console.log("--- HESAPLAMA DETAYLARI ---");
+  console.log("Cart Subtotal (Ara Toplam):", subtotal);
+  console.log("Discount (İndirim):", discountAmount);
+  console.log("Settings State (Ayarlar):", settings);
+  console.log("Settings Loading (Ayarlar Yükleniyor mu?):", settingsLoading);
+  console.log("Calculated Shipping Fee (Hesaplanan Kargo):", shippingFee);
+  console.log("FINAL TOTAL (NİHAİ TOPLAM):", total);
+  console.log("----------------------------");
+
   if (!cart || cart.items.length === 0) {
     return (
       <div className="container mx-auto px-6 py-16 text-center pt-48">
@@ -156,46 +179,46 @@ console.log("----------------------------");
   }
 
   if (iframeToken) {
-  return (
-    <div className="bg-gray-50 pt-40">
-      <Script src="https://www.paytr.com/js/iframeResizer.min.js" strategy="afterInteractive" />
-      <div className="container mx-auto px-4 py-16">
-        <h1 className="text-2xl font-bold text-center mb-8">Güvenli Ödeme Ekranı</h1>
+    return (
+      <div className="bg-gray-50 pt-40">
+        <Script src="https://www.paytr.com/js/iframeResizer.min.js" strategy="afterInteractive" />
+        <div className="container mx-auto px-4 py-16">
+          <h1 className="text-2xl font-bold text-center mb-8">Güvenli Ödeme Ekranı</h1>
 
-        {/* Daha geniş ve yeterli yükseklik */}
-        <div className="mx-auto bg-white p-4 rounded-lg shadow-lg"
-             style={{ maxWidth: 900, minHeight: 980 }}>
-          <iframe
-            id="paytriframe"
-            src={`https://www.paytr.com/odeme/guvenli/${iframeToken}`}
-            frameBorder={0}
-            scrolling="no"
-            style={{ width: "100%", height: "900px", display: "block" }}
-            allow="payment *"
-          />
+          {/* Daha geniş ve yeterli yükseklik */}
+          <div className="mx-auto bg-white p-4 rounded-lg shadow-lg"
+              style={{ maxWidth: 900, minHeight: 980 }}>
+            <iframe
+              id="paytriframe"
+              src={`https://www.paytr.com/odeme/guvenli/${iframeToken}`}
+              frameBorder={0}
+              scrolling="no"
+              style={{ width: "100%", height: "900px", display: "block" }}
+              allow="payment *"
+            />
+          </div>
         </div>
-      </div>
 
-      <Script id="paytr-iframe-init" strategy="afterInteractive">
-        {`
-          (function init() {
-            if (window.iFrameResize) {
-              window.iFrameResize({}, '#paytriframe');
-            } else {
-              var t = setInterval(function(){
-                if (window.iFrameResize) {
-                  clearInterval(t);
-                  window.iFrameResize({}, '#paytriframe');
-                }
-              }, 300);
-              setTimeout(function(){ clearInterval(t); }, 5000);
-            }
-          })();
-        `}
-      </Script>
-    </div>
-  );
-}
+        <Script id="paytr-iframe-init" strategy="afterInteractive">
+          {`
+            (function init() {
+              if (window.iFrameResize) {
+                window.iFrameResize({}, '#paytriframe');
+              } else {
+                var t = setInterval(function(){
+                  if (window.iFrameResize) {
+                    clearInterval(t);
+                    window.iFrameResize({}, '#paytriframe');
+                  }
+                }, 300);
+                setTimeout(function(){ clearInterval(t); }, 5000);
+              }
+            })();
+          `}
+        </Script>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-50 pt-40">
@@ -316,13 +339,13 @@ console.log("----------------------------");
               <dd className="text-sm font-medium text-gray-900">{subtotal.toFixed(2)} TL</dd>
             </div>
             {discountAmount > 0 && (
-  <div className="flex items-center justify-between text-green-600">
-    <dt className="text-sm">
-      İndirim {cart?.appliedCouponCode ? `(${cart.appliedCouponCode})` : ""}
-    </dt>
-    <dd className="text-sm font-medium">-{discountAmount.toFixed(2)} TL</dd>
-  </div>
-)}
+              <div className="flex items-center justify-between text-green-600">
+                <dt className="text-sm">
+                  İndirim {cart?.appliedCouponCode ? `(${cart.appliedCouponCode})` : ""}
+                </dt>
+                <dd className="text-sm font-medium">-{discountAmount.toFixed(2)} TL</dd>
+              </div>
+            )}
             <div className="flex items-center justify-between border-t border-gray-200 pt-4">
               <dt className="text-sm text-gray-600">Kargo Ücreti</dt>
               <dd className="text-sm font-medium text-gray-900">

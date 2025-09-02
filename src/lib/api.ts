@@ -1089,6 +1089,32 @@ export const applyCoupon = async (couponCode: string): Promise<CartDto | null> =
   }
 };
 
+export const removeCoupon = async (): Promise<CartDto | null> => {
+  try {
+    // A) misafir ID garanti
+    ensureGuestId();
+
+    const res = await fetch(`${API_URL}/api/cart/remove-coupon`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: getAuthHeaders(),
+      cache: 'no-store',
+    });
+
+    // B) sunucu yeni guest id döndürdüyse sakla
+    persistGuestFromResponse(res);
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.message || err?.detail || err?.title || 'Kupon kaldırılamadı.');
+    }
+    return res.json();
+  } catch (e) {
+    console.error('Kupon kaldırılırken hata:', e);
+    throw e;
+  }
+};
+
 // --- YENİ EKLENECEK KUPON YÖNETİMİ FONKSİYONLARI ---
 
 export const getCoupons = async (): Promise<Coupon[]> => {
