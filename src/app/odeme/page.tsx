@@ -36,7 +36,6 @@ const inputStyle =
 
 export default function CheckoutPage() {
   const { cart } = useCart();
-  console.log("ÖDEME SAYFASI SEPET VERİSİ:", cart);
   const router = useRouter();
   const { user, loading: authLoading } = useAuth(); // 🔸 login kontrolü
   const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
@@ -138,6 +137,16 @@ const shippingFee =
       : fee;
 
 const total = round2(subtotal - discountAmount + shippingFee);
+
+// YENİ EKLENEN DETAYLI DEBUG LOG'LARI
+console.log("--- HESAPLAMA DETAYLARI ---");
+console.log("Cart Subtotal (Ara Toplam):", subtotal);
+console.log("Discount (İndirim):", discountAmount);
+console.log("Settings State (Ayarlar):", settings);
+console.log("Settings Loading (Ayarlar Yükleniyor mu?):", settingsLoading);
+console.log("Calculated Shipping Fee (Hesaplanan Kargo):", shippingFee);
+console.log("FINAL TOTAL (NİHAİ TOPLAM):", total);
+console.log("----------------------------");
   if (!cart || cart.items.length === 0) {
     return (
       <div className="container mx-auto px-6 py-16 text-center pt-48">
