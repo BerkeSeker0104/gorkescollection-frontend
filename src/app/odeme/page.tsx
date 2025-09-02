@@ -115,15 +115,28 @@ export default function CheckoutPage() {
   };
 
   // Sepet indirimi ve ara toplamı cart’tan al; yoksa fallback hesapla
-const subtotal = (cart?.subtotal ?? cart?.items.reduce((sum, i) => sum + i.price * i.quantity, 0) ?? 0);
-const discountAmount = cart?.discountAmount ?? 0;
+// ----------------- Tutar Hesabı (backend ile birebir) -----------------
+const round2 = (n: number) => Math.round(n * 100) / 100;
 
-// Kargo eşiğini indirimsiz değil, indirIM SONRASI tutara göre kontrol et
-const shippingFee = settingsLoading ? 0 : ((subtotal - discountAmount) >= settings.threshold ? 0 : settings.fee);
+const rawSubtotal =
+  cart?.subtotal ??
+  cart?.items.reduce((sum, i) => sum + i.price * i.quantity, 0) ??
+  0;
 
-// Toplam = (ara toplam - indirim) + kargo
-const total = (subtotal - discountAmount) + (settingsLoading ? 0 : shippingFee);
-<div className="border-t border-gray-200 pt-4" />
+const subtotal = round2(rawSubtotal);
+const discountAmount = round2(cart?.discountAmount ?? 0);
+
+const fee = Number.isFinite(settings.fee) ? settings.fee : 0;
+const threshold = Number.isFinite(settings.threshold) ? settings.threshold : Number.MAX_SAFE_INTEGER;
+
+const shippingFee =
+  settingsLoading
+    ? 0
+    : (subtotal - discountAmount) >= threshold
+      ? 0
+      : fee;
+
+const total = round2(subtotal - discountAmount + shippingFee);
   if (!cart || cart.items.length === 0) {
     return (
       <div className="container mx-auto px-6 py-16 text-center pt-48">
@@ -133,45 +146,46 @@ const total = (subtotal - discountAmount) + (settingsLoading ? 0 : shippingFee);
   }
 
   if (iframeToken) {
-    return (
-      <div className="bg-gray-50 pt-40">
-        {/* iFrameResizer scriptini Next.js yolu ile yükle */}
-        <Script src="https://www.paytr.com/js/iframeResizer.min.js" strategy="afterInteractive" />
-        <div className="container mx-auto px-4 py-16">
-          <h1 className="text-2xl font-bold text-center mb-8">Güvenli Ödeme Ekranı</h1>
-          <div className="max-w-2xl mx-auto bg-white p-4 rounded-lg shadow-lg">
-            <iframe
-              id="paytriframe"
-              src={`https://www.paytr.com/odeme/guvenli/${iframeToken}`}
-              frameBorder={0}
-              scrolling="no"
-              style={{ width: "100%", height: "900px", display: "block" }}
-              allow="payment *"
-            />
-          </div>
-        </div>
+  return (
+    <div className="bg-gray-50 pt-40">
+      <Script src="https://www.paytr.com/js/iframeResizer.min.js" strategy="afterInteractive" />
+      <div className="container mx-auto px-4 py-16">
+        <h1 className="text-2xl font-bold text-center mb-8">Güvenli Ödeme Ekranı</h1>
 
-        {/* iFrameResizer'ı token geldiğinde çalıştır */}
-        <Script id="paytr-iframe-init" strategy="afterInteractive">
-          {`
-            (function init() {
-              if (window.iFrameResize) {
-                window.iFrameResize({}, '#paytriframe');
-              } else {
-                var t = setInterval(function(){
-                  if (window.iFrameResize) {
-                    clearInterval(t);
-                    window.iFrameResize({}, '#paytriframe');
-                  }
-                }, 300);
-                setTimeout(function(){ clearInterval(t); }, 5000);
-              }
-            })();
-          `}
-        </Script>
+        {/* Daha geniş ve yeterli yükseklik */}
+        <div className="mx-auto bg-white p-4 rounded-lg shadow-lg"
+             style={{ maxWidth: 900, minHeight: 980 }}>
+          <iframe
+            id="paytriframe"
+            src={`https://www.paytr.com/odeme/guvenli/${iframeToken}`}
+            frameBorder={0}
+            scrolling="no"
+            style={{ width: "100%", height: "900px", display: "block" }}
+            allow="payment *"
+          />
+        </div>
       </div>
-    );
-  }
+
+      <Script id="paytr-iframe-init" strategy="afterInteractive">
+        {`
+          (function init() {
+            if (window.iFrameResize) {
+              window.iFrameResize({}, '#paytriframe');
+            } else {
+              var t = setInterval(function(){
+                if (window.iFrameResize) {
+                  clearInterval(t);
+                  window.iFrameResize({}, '#paytriframe');
+                }
+              }, 300);
+              setTimeout(function(){ clearInterval(t); }, 5000);
+            }
+          })();
+        `}
+      </Script>
+    </div>
+  );
+}
 
   return (
     <div className="bg-gray-50 pt-40">
