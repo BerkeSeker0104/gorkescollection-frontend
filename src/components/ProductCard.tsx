@@ -112,7 +112,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         )}
         
         {!isInStock && (
-            <div className="hidden md:flex absolute left-3 right-3 bottom-3 items-center justify-center gap-2 rounded-md bg-gray-400/80 text-white py-2 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm z-20 cursor-not-allowed">
+            <div className="hidden md:flex absolute left-3 right-3 bottom-3 items-center justify-center gap-2 rounded-md bg-gray-400/80 text-white py-2 shadow-sm z-20 cursor-not-allowed">
               <span className="text-sm font-medium">Tükendi</span>
             </div>
         )}

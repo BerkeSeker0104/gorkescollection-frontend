@@ -37,7 +37,7 @@ export default function ShippingAndReturnsPage() {
                                 </p>
                                 <h4>Anlaşmalı Kargo Firmaları</h4>
                                 <p>
-                                    Siparişlerinizi, Türkiye'nin en güvenilir kargo firmalarından olan <strong>Aras Kargo</strong>, <strong>PTT Kargo</strong>, <strong>Hepsijet</strong> ve <strong>Sürat Kargo</strong> ile gönderiyoruz.
+                                    Siparişlerinizi, Türkiye'nin en güvenilir kargo firmalarından olan <strong>Aras Kargo</strong>, <strong>PTT Kargo</strong> ve <strong>Sürat Kargo</strong> ile gönderiyoruz.
                                 </p>
                             </div>
                         </div>

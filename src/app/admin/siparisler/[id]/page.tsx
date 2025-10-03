@@ -191,7 +191,7 @@ export default function AdminOrderDetailPage() {
                 <form onSubmit={handleSubmit(handleShipOrder)} className="space-y-4 border-t pt-4 mt-4">
                   <div>
                     <label htmlFor="cargoCompany" className="text-sm font-medium">Kargo Firması</label>
-                    <input type="text" {...register("cargoCompany")} className={inputStyle} placeholder={requestedCarrier || "Aras / PTT / Hepsijet / Sürat"} />
+                    <input type="text" {...register("cargoCompany")} className={inputStyle} placeholder={requestedCarrier || "Aras / PTT / Sürat"} />
                     {errors.cargoCompany && <p className="text-xs text-red-500">{errors.cargoCompany.message}</p>}
                   </div>
                   <div>

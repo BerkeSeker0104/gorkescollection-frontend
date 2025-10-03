@@ -11,7 +11,7 @@ const faqData = [
     },
     {
         question: "Hangi kargo firması ile çalışıyorsunuz?",
-        answer: "<p>Siparişlerinizi Aras Kargo, PTT Kargo, Hepsijet ve Sürat Kargo güvencesiyle adresinize teslim ediyoruz.</p>"
+        answer: "<p>Siparişlerinizi Aras Kargo, PTT Kargo ve Sürat Kargo güvencesiyle adresinize teslim ediyoruz.</p>"
     },
     {
         question: "İade ve değişim politikanız nedir?",

@@ -3,12 +3,11 @@
 import Image from "next/image";
 import { useId } from "react";
 
-export type CarrierKey = "Aras Kargo" | "PTT Kargo" | "Hepsijet" | "Sürat Kargo";
+export type CarrierKey = "Aras Kargo" | "PTT Kargo" | "Sürat Kargo";
 
 export const CARRIER_OPTIONS: { key: CarrierKey; label: string; logo: string }[] = [
   { key: "Aras Kargo",   label: "Aras Kargo",   logo: "/images/carriers/aras.svg" },
   { key: "PTT Kargo",    label: "PTT Kargo",    logo: "/images/carriers/ptt.svg" },
-  { key: "Hepsijet",     label: "Hepsijet",     logo: "/images/carriers/hepsijet.svg" },
   { key: "Sürat Kargo",  label: "Sürat Kargo",  logo: "/images/carriers/surat.svg" },
 ];
 
