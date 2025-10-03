@@ -1166,3 +1166,76 @@ export const deleteCoupon = async (couponId: number): Promise<boolean> => {
   });
   return res.ok;
 };
+
+// ---- TOPLU İNDİRİM API FONKSİYONLARI ----
+export const applyBulkDiscount = async (data: BulkDiscountDto): Promise<BulkDiscountResult> => {
+  const token = getToken();
+  if (!token) throw new Error('Yetkilendirme gerekli');
+
+  try {
+    const res = await fetch(`${API_URL}/api/admin/products/bulk-discount`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || 'Toplu indirim uygulanırken hata oluştu');
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error('Toplu indirim uygulanırken hata:', error);
+    throw error;
+  }
+};
+
+export const removeBulkDiscount = async (data: RemoveBulkDiscountDto): Promise<BulkDiscountResult> => {
+  const token = getToken();
+  if (!token) throw new Error('Yetkilendirme gerekli');
+
+  try {
+    const res = await fetch(`${API_URL}/api/admin/products/remove-bulk-discount`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || 'Toplu indirim kaldırılırken hata oluştu');
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error('Toplu indirim kaldırılırken hata:', error);
+    throw error;
+  }
+};
+
+export const getDiscountHistory = async (): Promise<DiscountHistory[]> => {
+  const token = getToken();
+  if (!token) return [];
+
+  try {
+    const res = await fetch(`${API_URL}/api/admin/discount-history`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      cache: 'no-store',
+    });
+
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (error) {
+    console.error('İndirim geçmişi alınırken hata:', error);
+    return [];
+  }
+};

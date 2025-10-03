@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, Fragment } from "react";
 import { Product, Category } from "@/types";
 import { getAllProducts, deleteProduct, getCategories } from "@/lib/api";
 import Image from "next/image";
-import { Edit, Trash2, PlusCircle } from "lucide-react";
+import { Edit, Trash2, PlusCircle, Target, History } from "lucide-react";
 import Link from "next/link";
 
 export default function AdminProductsPage() {
@@ -12,6 +12,7 @@ export default function AdminProductsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | "ALL">("ALL");
+  const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
 
   const fetchAll = async () => {
     setLoading(true);
@@ -73,6 +74,23 @@ export default function AdminProductsPage() {
     }
   };
 
+  const handleProductSelect = (productId: number) => {
+    setSelectedProducts(prev => 
+      prev.includes(productId) 
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    const currentProducts = [...grouped.entries()].flatMap(([_, list]) => list);
+    if (selectedProducts.length === currentProducts.length) {
+      setSelectedProducts([]);
+    } else {
+      setSelectedProducts(currentProducts.map(p => p.id));
+    }
+  };
+
   if (loading) return <p>Ürünler yükleniyor...</p>;
 
   return (
@@ -80,8 +98,8 @@ export default function AdminProductsPage() {
       <div className="flex flex-col sm:flex-row justify-between gap-4 items-start sm:items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Ürün Yönetimi</h1>
 
-        {/* Kategori filtresi + Yeni Ürün */}
-        <div className="flex gap-3 items-center">
+        {/* Kategori filtresi + Yeni Ürün + Toplu İşlemler */}
+        <div className="flex flex-wrap gap-3 items-center">
           <select
             value={selectedCategoryId}
             onChange={(e) =>
@@ -94,6 +112,26 @@ export default function AdminProductsPage() {
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
+
+          {selectedProducts.length > 0 && (
+            <div className="flex gap-2">
+              <Link
+                href={`/admin/urunler/toplu-indirim?selected=${selectedProducts.join(',')}`}
+                className="bg-green-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-green-700 text-sm"
+              >
+                <Target size={16} />
+                Toplu İndirim ({selectedProducts.length})
+              </Link>
+            </div>
+          )}
+
+          <Link
+            href="/admin/indirim-gecmisi"
+            className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-blue-700 text-sm"
+          >
+            <History size={16} />
+            İndirim Geçmişi
+          </Link>
 
           <Link
             href="/admin/urunler/yeni"
@@ -109,6 +147,14 @@ export default function AdminProductsPage() {
         <table className="w-full text-left min-w-[700px]">
           <thead>
             <tr className="border-b">
+              <th className="p-4">
+                <input
+                  type="checkbox"
+                  checked={selectedProducts.length > 0 && selectedProducts.length === [...grouped.entries()].flatMap(([_, list]) => list).length}
+                  onChange={handleSelectAll}
+                  className="w-4 h-4"
+                />
+              </th>
               <th className="p-4">Görsel</th>
               <th className="p-4">Ürün Adı</th>
               <th className="p-4">Fiyat</th>
@@ -121,7 +167,7 @@ export default function AdminProductsPage() {
               <Fragment key={catName}>
                 {/* Grup başlığı */}
                 <tr className="bg-gray-50/60">
-                  <td className="p-3 font-semibold text-gray-700" colSpan={5}>
+                  <td className="p-3 font-semibold text-gray-700" colSpan={6}>
                     {catName}
                     <span className="ml-2 text-xs text-gray-500">({list.length})</span>
                   </td>
@@ -136,7 +182,15 @@ export default function AdminProductsPage() {
                     )}`;
 
                   return (
-                    <tr key={product.id} className="border-b hover:bg-gray-50">
+                    <tr key={product.id} className={`border-b hover:bg-gray-50 ${selectedProducts.includes(product.id) ? 'bg-blue-50' : ''}`}>
+                      <td className="p-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedProducts.includes(product.id)}
+                          onChange={() => handleProductSelect(product.id)}
+                          className="w-4 h-4"
+                        />
+                      </td>
                       <td className="p-4">
                         <Image
                           src={thumb}

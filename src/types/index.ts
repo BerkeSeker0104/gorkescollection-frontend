@@ -149,6 +149,49 @@ export interface ShipOrderDto {
   trackingNumber: string;
 }
 
+// ---- TOPLU İNDİRİM TYPE'LARI ----
+export interface BulkDiscountDto {
+  productIds: number[];
+  saleType: 'percentage' | 'amount';
+  saleValue: number;
+  saleStartUtc?: string;
+  saleEndUtc?: string;
+  saleLabel?: string;
+  // Filtreleme kriterleri
+  categoryId?: number;
+  minPrice?: number;
+  maxPrice?: number;
+  maxStockQuantity?: number;
+}
+
+export interface BulkDiscountResult {
+  success: boolean;
+  updatedCount: number;
+  failedCount: number;
+  message: string;
+  errors: string[];
+}
+
+export interface RemoveBulkDiscountDto {
+  productIds: number[];
+}
+
+export interface DiscountHistory {
+  id: number;
+  productId: number;
+  productName: string;
+  action: 'APPLIED' | 'REMOVED' | 'UPDATED';
+  saleType: string;
+  saleValue: number;
+  saleStartUtc?: string;
+  saleEndUtc?: string;
+  saleLabel?: string;
+  oldPrice: number;
+  newPrice: number;
+  createdAt: string;
+  notes?: string;
+}
+
 export interface AdminCategoryDto {
   name: string;
   slug: string;
