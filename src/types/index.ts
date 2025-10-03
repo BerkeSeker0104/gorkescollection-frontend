@@ -8,6 +8,8 @@ export interface Product {
   priceFinal?: number;
   isOnSaleNow?: boolean;
   discountPercent?: number;
+  saleType?: string | null;
+  saleValue?: number | null;
   saleLabel?: string | null;
   saleStartUtc?: string | null;
   saleEndUtc?: string | null;

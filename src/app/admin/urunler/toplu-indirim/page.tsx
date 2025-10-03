@@ -15,7 +15,7 @@ import DiscountNotifications from '@/components/admin/DiscountNotifications';
 
 const bulkDiscountSchema = z.object({
   saleType: z.enum(['percentage', 'amount']),
-  saleValue: z.number().min(0.01, 'İndirim değeri 0\'dan büyük olmalı'),
+  saleValue: z.number().min(0.01, "İndirim değeri 0'dan büyük olmalı"),
   saleStartUtc: z.string().optional(),
   saleEndUtc: z.string().optional(),
   saleLabel: z.string().optional(),
@@ -38,7 +38,7 @@ export default function BulkDiscountPage() {
   const [isApplying, setIsApplying] = useState(false);
   const [result, setResult] = useState<BulkDiscountResult | null>(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [activeTab, setActiveTab] = useState<'discount' | 'templates' | 'filters' | 'import' | 'notifications'>('discount');
+  const [activeTab, setActiveTab] = useState<'discount' | 'templates' | 'filters' | 'import' | 'notifications' | 'analytics'>('discount');
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilterState>({});
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<BulkDiscountFormData>({
@@ -334,184 +334,185 @@ export default function BulkDiscountPage() {
               initialFilters={advancedFilters}
             />
 
-          {/* Ürün Listesi */}
-          <div className="bg-white rounded-lg shadow-sm">
-            <div className="p-4 border-b flex justify-between items-center">
-              <h3 className="text-lg font-semibold">
-                Ürünler ({filteredProducts.length})
-              </h3>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleSelectAll}
-                  className="text-sm px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-                >
-                  {selectedProducts.length === filteredProducts.length ? 'Tümünü Kaldır' : 'Tümünü Seç'}
-                </button>
-                <span className="text-sm text-gray-600">
-                  {selectedProducts.length} seçili
-                </span>
+            {/* Ürün Listesi */}
+            <div className="bg-white rounded-lg shadow-sm">
+              <div className="p-4 border-b flex justify-between items-center">
+                <h3 className="text-lg font-semibold">
+                  Ürünler ({filteredProducts.length})
+                </h3>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSelectAll}
+                    className="text-sm px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                  >
+                    {selectedProducts.length === filteredProducts.length ? 'Tümünü Kaldır' : 'Tümünü Seç'}
+                  </button>
+                  <span className="text-sm text-gray-600">
+                    {selectedProducts.length} seçili
+                  </span>
+                </div>
               </div>
-            </div>
-            
-            <div className="max-h-96 overflow-y-auto">
-              {filteredProducts.map(product => (
-                <div
-                  key={product.id}
-                  className={`p-4 border-b flex items-center gap-4 hover:bg-gray-50 ${
-                    selectedProducts.includes(product.id) ? 'bg-blue-50' : ''
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedProducts.includes(product.id)}
-                    onChange={() => handleProductSelect(product.id)}
-                    className="w-4 h-4"
-                  />
-                  <div className="flex-1">
-                    <h4 className="font-medium">{product.name}</h4>
-                    <p className="text-sm text-gray-600">
-                      {product.price.toLocaleString('tr-TR', {
-                        style: 'currency',
-                        currency: 'TRY'
-                      })}
-                    </p>
-                    <p className="text-xs text-gray-500">Stok: {product.stockQuantity}</p>
-                  </div>
-                  {selectedProducts.includes(product.id) && watchedValues.saleType && watchedValues.saleValue && (
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-green-600">
-                        Yeni Fiyat: {calculateNewPrice(product.price, watchedValues.saleType, watchedValues.saleValue).toLocaleString('tr-TR', {
+              
+              <div className="max-h-96 overflow-y-auto">
+                {filteredProducts.map(product => (
+                  <div
+                    key={product.id}
+                    className={`p-4 border-b flex items-center gap-4 hover:bg-gray-50 ${
+                      selectedProducts.includes(product.id) ? 'bg-blue-50' : ''
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedProducts.includes(product.id)}
+                      onChange={() => handleProductSelect(product.id)}
+                      className="w-4 h-4"
+                    />
+                    <div className="flex-1">
+                      <h4 className="font-medium">{product.name}</h4>
+                      <p className="text-sm text-gray-600">
+                        {product.price.toLocaleString('tr-TR', {
                           style: 'currency',
                           currency: 'TRY'
                         })}
                       </p>
+                      <p className="text-xs text-gray-500">Stok: {product.stockQuantity}</p>
                     </div>
-                  )}
-                </div>
-              ))}
+                    {selectedProducts.includes(product.id) && watchedValues.saleType && watchedValues.saleValue && (
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-green-600">
+                          Yeni Fiyat: {calculateNewPrice(product.price, watchedValues.saleType, watchedValues.saleValue).toLocaleString('tr-TR', {
+                            style: 'currency',
+                            currency: 'TRY'
+                          })}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Sağ Panel: İndirim Formu */}
-        <div className="lg:col-span-1">
-          <form onSubmit={handleSubmit(onSubmit)} className="bg-white p-6 rounded-lg shadow-sm space-y-4">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Target size={20} />
-              İndirim Ayarları
-            </h3>
+          {/* Sağ Panel: İndirim Formu */}
+          <div className="lg:col-span-1">
+            <form onSubmit={handleSubmit(onSubmit)} className="bg-white p-6 rounded-lg shadow-sm space-y-4">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Target size={20} />
+                İndirim Ayarları
+              </h3>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">İndirim Tipi</label>
-              <select {...register('saleType')} className="w-full border rounded px-3 py-2">
-                <option value="percentage">Yüzde (%)</option>
-                <option value="amount">Tutar (₺)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                İndirim Değeri {watchedValues.saleType === 'percentage' ? '(%)' : '(₺)'}
-              </label>
-              <input
-                type="number"
-                step={watchedValues.saleType === 'percentage' ? '1' : '0.01'}
-                {...register('saleValue', { setValueAs: (v) => Number(v) })}
-                className="w-full border rounded px-3 py-2"
-                placeholder={watchedValues.saleType === 'percentage' ? '20' : '50'}
-              />
-              {errors.saleValue && (
-                <p className="text-red-600 text-sm mt-1">{errors.saleValue.message}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">İndirim Etiketi (Opsiyonel)</label>
-              <input
-                type="text"
-                {...register('saleLabel')}
-                className="w-full border rounded px-3 py-2"
-                placeholder="Sezon Sonu, Yılbaşı İndirimi"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Başlangıç Tarihi</label>
+                <label className="block text-sm font-medium mb-1">İndirim Tipi</label>
+                <select {...register('saleType')} className="w-full border rounded px-3 py-2">
+                  <option value="percentage">Yüzde (%)</option>
+                  <option value="amount">Tutar (₺)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  İndirim Değeri {watchedValues.saleType === 'percentage' ? '(%)' : '(₺)'}
+                </label>
                 <input
-                  type="datetime-local"
-                  {...register('saleStartUtc')}
+                  type="number"
+                  step={watchedValues.saleType === 'percentage' ? '1' : '0.01'}
+                  {...register('saleValue', { setValueAs: (v) => Number(v) })}
                   className="w-full border rounded px-3 py-2"
+                  placeholder={watchedValues.saleType === 'percentage' ? '20' : '50'}
+                />
+                {errors.saleValue && (
+                  <p className="text-red-600 text-sm mt-1">{errors.saleValue.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">İndirim Etiketi (Opsiyonel)</label>
+                <input
+                  type="text"
+                  {...register('saleLabel')}
+                  className="w-full border rounded px-3 py-2"
+                  placeholder="Sezon Sonu, Yılbaşı İndirimi"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Bitiş Tarihi</label>
-                <input
-                  type="datetime-local"
-                  {...register('saleEndUtc')}
-                  className="w-full border rounded px-3 py-2"
-                />
-              </div>
-            </div>
 
-            <div className="space-y-2">
-              <button
-                type="submit"
-                disabled={isApplying || selectedProducts.length === 0}
-                className="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {isApplying ? 'Uygulanıyor...' : 'İndirim Uygula'}
-                <Target size={16} />
-              </button>
-
-              <button
-                type="button"
-                onClick={handleRemoveDiscount}
-                disabled={isApplying || selectedProducts.length === 0}
-                className="w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {isApplying ? 'Kaldırılıyor...' : 'İndirimleri Kaldır'}
-                <X size={16} />
-              </button>
-            </div>
-          </form>
-
-          {/* Sonuç Gösterimi */}
-          {result && (
-            <div className={`mt-4 p-4 rounded-lg ${
-              result.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-            }`}>
-              <div className="flex items-center gap-2 mb-2">
-                {result.success ? <Check size={20} /> : <X size={20} />}
-                <span className="font-semibold">
-                  {result.success ? 'Başarılı' : 'Hata'}
-                </span>
-              </div>
-              <p className="text-sm">{result.message}</p>
-              {result.updatedCount > 0 && (
-                <p className="text-sm mt-1">
-                  Güncellenen: {result.updatedCount} ürün
-                </p>
-              )}
-              {result.failedCount > 0 && (
-                <p className="text-sm mt-1">
-                  Başarısız: {result.failedCount} ürün
-                </p>
-              )}
-              {result.errors.length > 0 && (
-                <div className="mt-2">
-                  <p className="text-sm font-medium">Hatalar:</p>
-                  <ul className="text-xs list-disc list-inside">
-                    {result.errors.map((error, index) => (
-                      <li key={index}>{error}</li>
-                    ))}
-                  </ul>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Başlangıç Tarihi</label>
+                  <input
+                    type="datetime-local"
+                    {...register('saleStartUtc')}
+                    className="w-full border rounded px-3 py-2"
+                  />
                 </div>
-              )}
-            </div>
-          )}
+                <div>
+                  <label className="block text-sm font-medium mb-1">Bitiş Tarihi</label>
+                  <input
+                    type="datetime-local"
+                    {...register('saleEndUtc')}
+                    className="w-full border rounded px-3 py-2"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <button
+                  type="submit"
+                  disabled={isApplying || selectedProducts.length === 0}
+                  className="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isApplying ? 'Uygulanıyor...' : 'İndirim Uygula'}
+                  <Target size={16} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleRemoveDiscount}
+                  disabled={isApplying || selectedProducts.length === 0}
+                  className="w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isApplying ? 'Kaldırılıyor...' : 'İndirimleri Kaldır'}
+                  <X size={16} />
+                </button>
+              </div>
+            </form>
+
+            {/* Sonuç Gösterimi */}
+            {result && (
+              <div className={`mt-4 p-4 rounded-lg ${
+                result.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+              }`}>
+                <div className="flex items-center gap-2 mb-2">
+                  {result.success ? <Check size={20} /> : <X size={20} />}
+                  <span className="font-semibold">
+                    {result.success ? 'Başarılı' : 'Hata'}
+                  </span>
+                </div>
+                <p className="text-sm">{result.message}</p>
+                {result.updatedCount > 0 && (
+                  <p className="text-sm mt-1">
+                    Güncellenen: {result.updatedCount} ürün
+                  </p>
+                )}
+                {result.failedCount > 0 && (
+                  <p className="text-sm mt-1">
+                    Başarısız: {result.failedCount} ürün
+                  </p>
+                )}
+                {result.errors.length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-sm font-medium">Hatalar:</p>
+                    <ul className="text-xs list-disc list-inside">
+                      {result.errors.map((error, index) => (
+                        <li key={index}>{error}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
