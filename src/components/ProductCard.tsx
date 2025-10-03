@@ -29,7 +29,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const base = product.priceOriginal || product.price;
   const final = product.priceFinal || product.price;
   const hasDiscount = Boolean(
-    product.isOnSaleNow && 
     product.priceFinal && 
     product.priceOriginal && 
     product.priceFinal < product.priceOriginal
