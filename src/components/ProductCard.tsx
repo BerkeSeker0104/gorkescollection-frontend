@@ -28,7 +28,12 @@ const ProductCard = ({ product }: ProductCardProps) => {
   // Backend'den gelen fiyat bilgilerini kullan
   const base = product.priceOriginal || product.price;
   const final = product.priceFinal || product.price;
-  const hasDiscount = Boolean(product.isOnSaleNow && product.priceFinal && product.priceFinal < product.priceOriginal);
+  const hasDiscount = Boolean(
+    product.isOnSaleNow && 
+    product.priceFinal && 
+    product.priceOriginal && 
+    product.priceFinal < product.priceOriginal
+  );
 
   const thumb =
     (product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls[0] : null) ||
@@ -120,8 +125,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
         {hasDiscount ? (
           <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-sm text-gray-500 line-through">{formatTRY(product.priceOriginal)}</span>
-            <span className="text-sm font-semibold text-gray-900">{formatTRY(product.priceFinal)}</span>
+            <span className="text-sm text-gray-500 line-through">{formatTRY(product.priceOriginal || product.price)}</span>
+            <span className="text-sm font-semibold text-gray-900">{formatTRY(product.priceFinal || product.price)}</span>
           </div>
         ) : (
           <p className="text-sm font-medium text-gray-900 mt-1">{formatTRY(product.price)}</p>
