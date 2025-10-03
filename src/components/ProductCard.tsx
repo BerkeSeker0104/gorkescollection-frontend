@@ -25,18 +25,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
   
   const isInStock = product.stockQuantity > 0;
 
-  const base =
-    typeof product.priceOriginal === 'number' && product.priceOriginal > 0
-      ? product.priceOriginal
-      : (typeof product.price === 'number' ? product.price : 0);
-
-  const final =
-    product.isOnSaleNow &&
-    typeof product.priceFinal === 'number' &&
-    product.priceFinal > 0
-      ? product.priceFinal
-      : base;
-  const hasDiscount = Boolean(product.isOnSaleNow && final < base);
+  // Backend'den gelen fiyat bilgilerini kullan
+  const base = product.priceOriginal || product.price;
+  const final = product.priceFinal || product.price;
+  const hasDiscount = Boolean(product.isOnSaleNow && product.priceFinal && product.priceFinal < product.priceOriginal);
 
   const thumb =
     (product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls[0] : null) ||
@@ -128,11 +120,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
         {hasDiscount ? (
           <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-sm text-gray-500 line-through">{formatTRY(base)}</span>
-            <span className="text-sm font-semibold text-gray-900">{formatTRY(final)}</span>
+            <span className="text-sm text-gray-500 line-through">{formatTRY(product.priceOriginal)}</span>
+            <span className="text-sm font-semibold text-gray-900">{formatTRY(product.priceFinal)}</span>
           </div>
         ) : (
-          <p className="text-sm font-medium text-gray-900 mt-1">{formatTRY(base)}</p>
+          <p className="text-sm font-medium text-gray-900 mt-1">{formatTRY(product.price)}</p>
         )}
 
         <div className="mt-auto pt-3 md:hidden">
