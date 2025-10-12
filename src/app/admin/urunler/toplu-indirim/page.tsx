@@ -159,8 +159,9 @@ export default function BulkDiscountPage() {
         productIds: selectedProducts,
         saleType: data.saleType,
         saleValue: data.saleValue,
-        saleStartUtc: data.saleStartUtc || undefined,
-        saleEndUtc: data.saleEndUtc || undefined,
+        // Yerel tarihi UTC ISO string formatına çevir
+        saleStartUtc: data.saleStartUtc ? new Date(data.saleStartUtc).toISOString() : undefined,
+        saleEndUtc: data.saleEndUtc ? new Date(data.saleEndUtc).toISOString() : undefined,
         saleLabel: data.saleLabel || undefined,
         categoryId: data.categoryId || undefined,
         minPrice: data.minPrice || undefined,
