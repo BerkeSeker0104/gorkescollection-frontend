@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Product, Category, BulkDiscountDto, BulkDiscountResult } from '@/types';
 import { getAllProducts, getCategories, applyBulkDiscount, removeBulkDiscount } from '@/lib/api';
 import { useForm } from 'react-hook-form';
@@ -33,7 +33,6 @@ export default function BulkDiscountPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [isApplying, setIsApplying] = useState(false);
   const [result, setResult] = useState<BulkDiscountResult | null>(null);
@@ -60,7 +59,6 @@ export default function BulkDiscountPage() {
       ]);
       setProducts(fetchedProducts);
       setCategories(fetchedCategories);
-      setFilteredProducts(fetchedProducts);
       
       // URL'den seçili ürünleri al
       const selectedParam = searchParams.get('selected');
@@ -74,8 +72,8 @@ export default function BulkDiscountPage() {
     fetchData();
   }, [searchParams]);
 
-  // Gelişmiş filtreleme logic'i
-  useEffect(() => {
+  // Gelişmiş filtreleme logic'i - useMemo ile optimize edildi
+  const filteredProducts = useMemo(() => {
     let filtered = [...products];
 
     // Temel filtreler
@@ -128,7 +126,7 @@ export default function BulkDiscountPage() {
       filtered = filtered.filter(p => p.stockQuantity === 0);
     }
 
-    setFilteredProducts(filtered);
+    return filtered;
   }, [products, watchedValues, advancedFilters]);
 
   const handleProductSelect = (productId: number) => {
