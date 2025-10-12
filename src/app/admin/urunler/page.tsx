@@ -157,7 +157,7 @@ export default function AdminProductsPage() {
               </th>
               <th className="p-4">Görsel</th>
               <th className="p-4">Ürün Adı</th>
-              <th className="p-4">Fiyat</th>
+              <th className="p-4">Fiyat / İndirimli Fiyat</th>
               <th className="p-4">Stok</th>
               <th className="p-4">İşlemler</th>
             </tr>
@@ -202,12 +202,43 @@ export default function AdminProductsPage() {
                       </td>
                       <td className="p-4 font-medium">{product.name}</td>
                       <td className="p-4">
-                        {Number(product.price).toLocaleString("tr-TR", {
-                          style: "currency",
-                          currency: "TRY",
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
+                        <div className="flex flex-col gap-1">
+                          {/* Orijinal fiyat */}
+                          <div className={`${product.isOnSaleNow && product.priceOriginal ? 'text-gray-500 line-through text-sm' : 'font-semibold'}`}>
+                            {Number(product.priceOriginal || product.price).toLocaleString("tr-TR", {
+                              style: "currency",
+                              currency: "TRY",
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                          </div>
+                          
+                          {/* İndirimli fiyat (sadece indirimdeyse göster) */}
+                          {product.isOnSaleNow && product.priceFinal && (
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-green-600">
+                                {Number(product.priceFinal).toLocaleString("tr-TR", {
+                                  style: "currency",
+                                  currency: "TRY",
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}
+                              </span>
+                              {product.discountPercent && product.discountPercent > 0 && (
+                                <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium">
+                                  %{product.discountPercent.toFixed(0)} indirim
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* İndirim etiketi (varsa) */}
+                          {product.saleLabel && (
+                            <span className="text-xs text-blue-600 font-medium">
+                              {product.saleLabel}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="p-4">{(product as any).stockQuantity}</td>
                       <td className="p-4">

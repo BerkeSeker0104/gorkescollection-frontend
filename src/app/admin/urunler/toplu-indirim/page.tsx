@@ -368,24 +368,34 @@ export default function BulkDiscountPage() {
                     />
                     <div className="flex-1">
                       <h4 className="font-medium">{product.name}</h4>
-                      <p className="text-sm text-gray-600">
-                        {product.price.toLocaleString('tr-TR', {
-                          style: 'currency',
-                          currency: 'TRY'
-                        })}
-                      </p>
-                      <p className="text-xs text-gray-500">Stok: {product.stockQuantity}</p>
-                    </div>
-                    {selectedProducts.includes(product.id) && watchedValues.saleType && watchedValues.saleValue && (
-                      <div className="text-right">
-                        <p className="text-sm font-medium text-green-600">
-                          Yeni Fiyat: {calculateNewPrice(product.price, watchedValues.saleType, watchedValues.saleValue).toLocaleString('tr-TR', {
+                      <div className="flex flex-col gap-1">
+                        {/* Mevcut fiyat (indirim varsa çizili) */}
+                        <div className={`text-sm ${selectedProducts.includes(product.id) && watchedValues.saleType && watchedValues.saleValue ? 'text-gray-500 line-through' : 'text-gray-600'}`}>
+                          {product.price.toLocaleString('tr-TR', {
                             style: 'currency',
                             currency: 'TRY'
                           })}
-                        </p>
+                        </div>
+                        
+                        {/* Yeni fiyat (sadece seçili ve indirim ayarlandıysa) */}
+                        {selectedProducts.includes(product.id) && watchedValues.saleType && watchedValues.saleValue && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-green-600">
+                              {calculateNewPrice(product.price, watchedValues.saleType, watchedValues.saleValue).toLocaleString('tr-TR', {
+                                style: 'currency',
+                                currency: 'TRY'
+                              })}
+                            </span>
+                            {watchedValues.saleType === 'percentage' && (
+                              <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium">
+                                %{watchedValues.saleValue} indirim
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    )}
+                      <p className="text-xs text-gray-500">Stok: {product.stockQuantity}</p>
+                    </div>
                   </div>
                 ))}
               </div>
