@@ -63,18 +63,18 @@ const Header = () => {
       )} />
 
       <div className="container mx-auto px-4 sm:px-6 h-full relative">
-        <div className={clsx('absolute top-1/2 transition-all duration-500 ease-in-out', {
-          'left-4 sm:left-6 -translate-y-1/2': isMinimal,
-          'left-1/2 -translate-x-1/2 -translate-y-[60%]': !isMinimal
+        <div className={clsx('absolute transition-all duration-500 ease-in-out z-20', {
+          'left-2 sm:left-4 top-1/2 -translate-y-1/2': isMinimal,
+          'left-1/2 -translate-x-1/2 top-[75%] -translate-y-1/2': !isMinimal
         })}>
           <Link href="/" aria-label="Ana sayfa">
             <Image
               src={isMinimal ? '/logo-dark.png' : '/logo-light.png'}
               alt="Gorke's Collection Logo"
-              width={isMinimal ? 160 : 420}
-              height={isMinimal ? 36 : 100}
+              width={isMinimal ? 220 : 500}
+              height={isMinimal ? 50 : 120}
               priority
-              className="transition-all duration-500"
+              className="transition-all duration-500 object-contain"
             />
           </Link>
         </div>
@@ -83,7 +83,7 @@ const Header = () => {
           'absolute top-1/2 -translate-y-1/2 transition-all duration-500 ease-in-out',
           'hidden md:flex items-center',
           {
-            'left-[200px] right-4': isMinimal,
+            'left-[240px] right-4': isMinimal,
             'left-1/2 -translate-x-1/2 top-1/2 translate-y-[80%] w-full': !isMinimal // w-full eklendi
           }
         )}>

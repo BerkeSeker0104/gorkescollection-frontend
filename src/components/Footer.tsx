@@ -13,8 +13,8 @@ const Footer = () => {
                 <Image
                     src="/logo-dark.png" // Koyu renk logonuz
                     alt="Gorke's Collection Logo"
-                    width={180}
-                    height={40}
+                    width={280}
+                    height={62}
                 />
             </Link>
             <p className="mt-4 text-sm text-gray-500 leading-relaxed">

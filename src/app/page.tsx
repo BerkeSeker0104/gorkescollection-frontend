@@ -74,16 +74,16 @@ export default async function HomePage() {
         </video>
         <div className="absolute inset-0 bg-black/30" />
         <div className="relative z-10 h-full flex flex-col justify-end items-start text-white p-8 md:p-16">
-          <p className="text-lg">İlkbahar–Yaz 2025</p>
-          <h1 className="text-4xl md:text-6xl font-bold mt-2">Ruhun Işıltısı</h1>
+          <p className="text-lg">Sonbahar–Kış 2025 Koleksiyonu</p>
+          <h1 className="text-3xl md:text-5xl font-bold mt-2">Soğuk Günler, Güçlü Stil</h1>
           <p className="mt-4 max-w-md">
-            Her parçayla kendini ifade et. Bu sezon ışığınla fark yaratmanın zamanı.
+            Kış kombinlerine eşlik eden sade ve şık takılar. Günlük kullanımdan özel anlara.
           </p>
           <Link
             href="/yeni-gelenler"
             className="mt-6 inline-block bg-white text-black font-bold py-3 px-8 rounded-full hover:bg-gray-200 transition-colors"
           >
-            Şimdi Keşfet
+            Alışverişe Başla
           </Link>
         </div>
       </section>

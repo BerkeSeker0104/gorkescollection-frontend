@@ -25,7 +25,13 @@ import {
 } from '@/types';
 
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// Backend API URL - Production backend'i kullan (yerel geliştirme için .env.local'de override edilebilir)
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://gorkes-api.onrender.com";
+
+// API_URL kontrolü - geliştirme sırasında uyarı ver
+if (typeof window === 'undefined' && !process.env.NEXT_PUBLIC_API_URL) {
+  console.warn('⚠️  NEXT_PUBLIC_API_URL tanımlı değil, varsayılan production URL kullanılıyor. Yerel geliştirme için .env.local dosyası oluşturun.');
+}
 
 // Misafir sepet kimliği (cookie çalışmazsa header ile taşırız)
 const GUEST_HEADER = 'X-Guest-Id';
