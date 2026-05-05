@@ -10,7 +10,6 @@ import { FavoritesProvider } from "@/context/FavoritesContext";
 import { CartProvider } from "@/context/CartContext";
 import { Toaster } from "react-hot-toast";
 import WhatsAppButton from '@/components/WhatsAppButton';
-import ChristmasEffects from '@/components/ChristmasEffects';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -40,7 +39,6 @@ export default function RootLayout({
                 <main className="flex-grow">{children}</main>
                 <Footer />
                 <WhatsAppButton phoneNumber={WHATSAPP_PHONE_NUMBER} />
-                <ChristmasEffects />
               </div>
             </CartProvider>
           </FavoritesProvider>
